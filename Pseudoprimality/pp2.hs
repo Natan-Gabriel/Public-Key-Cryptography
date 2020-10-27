@@ -1,5 +1,9 @@
 
 
+getBasesWrapper n=(getBases n  ([x | x <- [1..(n-1)]]))
+
+lessThanN n=[x | x <- [1..(n-1)]]
+
 getBases n (hl:tl)=
     if ((euclidean hl n)==1 && (rsme hl (n-1) n (generateBinary [] (n-1)))==1) 
         then if ((length tl)==0 ) then [hl]
