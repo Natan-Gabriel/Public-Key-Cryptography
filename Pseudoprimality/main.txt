@@ -1,1 +1,24 @@
-aa
+By Fermat’s Little Theorem, if n is prime, then ∀b ∈ Z (enough
+b < n) with (b, n) = 1 we have
+
+b^(n−1) = 1 (mod n) (1)
+
+An odd composite natural number n is called pseudoprime to the
+base b if (b, n) = 1 and (1) holds.
+
+Because ∀b ∈ Z with |b| ≥ 2, there are infinitely-many pseudoprimes to
+the base b,we will find bases b from Zb
+
+Input: b, k, n ∈ N with b < n and k =
+Pt
+i=0 ki2
+i
+.
+Output: a = b
+k mod n.
+
+
+Let define Repeated Squaring Modular Exponentiation (rsme) function:
+
+
+
