@@ -7,26 +7,26 @@ rsme b k n (ht:tt)= do
     if (k==0)
         then a
         else do
-            let cc=b
+            let c=b
             let aa = if (ht==1)
                 then b
                 else a
-            (forLoopRsme aa cc b n k tt)
+            (forLoopRsme aa c n k tt)
 
 
 
 -- forLoopRsme :: Integer->Integer->Integer->Integer->[Integer]->Integer
-forLoopRsme a c b n k (ht:tt) = do 
+forLoopRsme a c n k (ht:tt) = do 
     let cc =(mod (c*c) n)
     
     let aa = if (ht==1)
             then
-                (mod (c*a) n)
+                (mod (cc*a) n)
             else 
                 a
     if ( (length tt)==0 ) 
         then aa
-    else (forLoopRsme aa cc b n k tt)
+    else (forLoopRsme aa cc n k tt)
 
 -- ff :: Integer->Integer->Integer->Integer->Integer->[Integer]->[]
 -- ff a c b n k (ht:tt) = 
