@@ -2,27 +2,22 @@
 
 
 
--- rsme c b n k (ht:tt)=
-    -- let a = 1
---     if(k==0)
---         then a
---     let c=b
---     if (ht==1)
---         then let a=b
---     write (forLoopRsme c b n k tt)
+rsme b k n (ht:tt)= do
+    let a = 1
+    if (k==0)
+        then a
+        else do
+            let cc=b
+            let aa = if (ht==1)
+                then b
+                else a
+            (forLoopRsme aa cc b n k tt)
 
 
--- forLoopRsme c b n k (ht:tt) =
---     -- let c1 = c*c
---     if (ht==1)
---         then  let a=c*a mod n 
---     (forLoopRsme c1 b n k tt)
 
 -- forLoopRsme :: Integer->Integer->Integer->Integer->[Integer]->Integer
 forLoopRsme a c b n k (ht:tt) = do 
-    let cc = if (ht==1)
-            then (mod (c*c) n)
-            else c
+    let cc =(mod (c*c) n)
     
     let aa = if (ht==1)
             then
