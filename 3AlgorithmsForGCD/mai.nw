@@ -1,0 +1,9 @@
+<<mai.py>>=
+
+<<message>>=
+”HelloWorld!”
+@
+
+<<printMessage>>=
+print(<<message>>)
+@
