@@ -9,6 +9,8 @@ base b if (b, n) = 1 and (1) holds.
 Because ∀b ∈ Z with |b| ≥ 2, there are infinitely-many pseudoprimes to
 the base b,we will find bases b from Zb
 
+We also have that every odd natural number is pseudoprime to the bases b = ±1
+
 Input: b, k, n ∈ N with b < n and k =
 Pt
 i=0 ki2
@@ -16,6 +18,19 @@ i
 .
 Output: a = b
 k mod n.
+
+We will shorten our search space using the following theorem:
+
+Let n ∈ N be an odd composite.
+(i) n pseudoprime to b ⇒ n pseudoprime to −b and b−1
+, where
+b
+−1
+is the inverse modulo n of b.
+(ii) n pseudoprime to b1 and b2 ⇒ n pseudoprime to b1b2.
+(iii) If n fails (1) for a single base b < n, then n fails (1) for at
+least half of the possible bases b < n.
+
 
 
 Let define Repeated Squaring Modular Exponentiation (rsme) function:

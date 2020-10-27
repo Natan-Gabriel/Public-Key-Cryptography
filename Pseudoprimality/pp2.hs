@@ -1,5 +1,24 @@
 
 
+getBases n (hl:tl)=
+    if ((euclidean hl n)==1 && (rsme hl (n-1) n (generateBinary [] (n-1)))==1) 
+        then if ((length tl)==0 ) then [hl]
+        else [hl] ++ (getBases n tl)
+    else 
+        if ((length tl)==0 ) then []
+        else (getBases n tl)
+
+
+euclidean a b =
+    if (b>0)
+        then (euclidean b (mod a b) )
+        else a
+
+
+generateBinary l n=
+    if (n==0)
+        then l
+    else (generateBinary ( [(mod n 2)] ++ l ) (quot n 2))
 
 
 rsme b k n (ht:tt)= do
@@ -28,10 +47,3 @@ forLoopRsme a c n k (ht:tt) = do
         then aa
     else (forLoopRsme aa cc n k tt)
 
--- ff :: Integer->Integer->Integer->Integer->Integer->[Integer]->[]
--- ff a c b n k (ht:tt) = 
-    
---     if ( (length tt)==0 ) 
---         then tt
---         else (ff a c b n k tt)
-    
