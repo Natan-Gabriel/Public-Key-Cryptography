@@ -1,0 +1,221 @@
+---
+format: markdown
+title: 'Laboratory 2'
+author: Tiutiu Natan-Gabriel,937
+---
+
+\newcommand{\mr}[1]{\mathrm{#1}}
+\newcommand{\mb}[1]{\mathbf{#1}}
+\newcommand{\mm}[1]{\mathbb{#1}}
+\newcommand{\mc}[1]{\mathcal{#1}}
+\newcommand{\mf}[1]{\mathfrak{#1}}
+\newcommand{\mt}[1]{\mathtt{#1}}
+\newcommand{\Om}{\Omega}
+\newcommand{\om}{\omega}
+\newcommand{\dagg}{\dagger}
+\newcommand{\tuple}[1]{\langle #1 \rangle}
+\newcommand{\bash}[1]{\backslash{#1}}
+\newcommand{\ti}[1]{\textit{#1}}
+\newcommand{\tb}[1]{\textbf{#1}}
+\newcommand{\ts}[1]{\textsc{#1}}
+\newcommand{\tu}[1]{\underline{#1}}
+\newcommand{\ty}[1]{\texttt{#1}}
+\newcommand{\pp}[2]{\Pr\left[{#1}\,\mid\,{#2}\right]}
+\newcommand{\mood}[1]{\,(\mathrm{modulo}\,\,{#1})}
+\newcommand{\modd}{\,\mathrm{mod}\,}
+\newcommand{\Ke}[1]{\mathrm{Kern}\left[{#1}\right]}
+\newcommand{\im}{\mathrm{im}\,}
+\newcommand{\dset}[2]{\left\{{#1}\, | \,{#2} \right\}}
+\newcommand{\sset}[1]{\left\{{#1}\right\}}
+\newcommand{\sgn}{\mr{sgn}}
+\newcommand{\barr}[1]{\overline{#1}}
+\newcommand{\diag}{\mathrm{diag}}
+\newcommand{\kp}[1]{\langle #1 \rangle}
+\newcommand{\braket}[2]{\langle{#1}\,|\,{#2}\rangle}
+\newcommand{\ms}[1]{\underline{#1}}
+\newcommand{\teilt}{\,\vDash\,}
+\newcommand{\steilt}{\,\vdash\,}
+\newcommand{\nteilt}{\,\nvDash\,}
+\newcommand{\nsteilt}{\,\nvdash\,}
+\newcommand{\ord}[1]{\mr{ord}\left({#1}\right)}
+\newcommand{\lcm}[1]{\mr{lcm}\left({#1}\right)}
+\newcommand{\D}{\downarrow}
+\newcommand{\eps}{\varepsilon}
+\newcommand{\vphi}{\varphi}
+\newcommand{\vtheta}{\vartheta}
+\newcommand{\sql}{\,\sqsubseteq\,}
+\newcommand{\deff}{\stackrel{\text{ def }}{=}}
+\newcommand{\Hom}{\mathrm{Hom}}
+\newcommand{\End}{\mathrm{End}}
+\newcommand{\Aut}{\mathrm{Aut}}
+\newcommand{\QED}{\phantom{mmm}\blacksquare}
+\newcommand{\cycle}[2]{\left[\begin{matrix}{#1}\\{#2}\end{matrix}\right]}
+\newcommand{\parti}[2]{\left\{\begin{matrix}{#1}\\{#2}\end{matrix}\right\}}
+\newcommand{\eev}{\wedge}
+
+# Introduction {#introduction}
+I will implement an algorithm for determining all bases b with respect to which a composite odd number
+n is pseudoprime. In this implementation I will use repeated squaring modular exponentiation method.
+
+#Theoretical support {#introduction}
+
+By Fermat’s Little Theorem, if n is prime, then for any b in Z (enough
+b < n) with (b, n) = 1 we have
+
+b^(n-1) = 1 (mod n) (1)
+
+An odd composite natural number n is called pseudoprime to the
+base b if (b, n) = 1 and (1) holds.
+
+Because $\forall b $\to$ Z with |b| >= 2, there are infinitely-many pseudoprimes to
+the base b,we will find bases b from Zb
+
+We also have that every odd natural number is pseudoprime to the bases b = ±1 (3)
+
+Input: b, k, n ∈ N with b < n and k =
+Pt
+i=0 ki2
+i
+.
+Output: a = b
+k mod n.
+
+We will shorten our search space using the first part of (i) from the following theorem:
+
+Let n ∈ N be an odd composite.
+(i) n pseudoprime to b ⇒ n pseudoprime to −b and b−1
+, where
+b
+−1
+is the inverse modulo n of b. (2)
+(ii) n pseudoprime to b1 and b2 ⇒ n pseudoprime to b1b2.
+(iii) If n fails (1) for a single base b < n, then n fails (1) for at
+least half of the possible bases b < n.
+
+We didn't use 2nd part from (i) and (ii) because it would add 
+more complexity to our program (in understanding not in efficiency) , and the benefits are few(if any) ,at least for numbers relatively small.
+By the way,for finding the inverse you can use Extended Euler’s GCD algorithm having complexity O(Log n) - works when b and n are coprime.
+
+
+
+
+So,using these improvements,our algorithm will compute the correct bases with
+respect to which the given number is pseudoprime only if the given number is an
+odd composite number!
+
+
+
+
+Let define Repeated Squaring Modular Exponentiation (rsme) function:
+
+
+Our first function is a wrapper function having the following mathematical model:
+$$
+ getBasesWrapper(n)= [1] \bigcup [n-1] \bigcup getBases( n,2 ... n/2+1 )
+$$
+
+~~~~~{.haskell}
+<<getBasesWrapper>>=
+getBasesWrapper n=[1]++[n-1]++(getBases n  ([x | x <- [2..((quot n 2)+1)]]) )
+@
+~~~~~
+
+
+The getBases function which is called from the wrapper function calls function rsme with corresponding parameters
+ for each number in the given interval(2...n/2+1 in our case). Using (1) and (2) from theoretical support
+ we automatically add 1 and -1 to the result and for each base b satisfying the conditions we will also add -b to 
+ the result.
+The mathematical model is:(in order to compute l1^(n-1) mod n we will call rsme(l1,n-1,n, n in binary form)) 
+$$
+ getBases(n;l1,l2..lm)= \begin{cases} [l1] \bigcup [n-l1], if m=1 and (l1,n)=1 and l1^(n-1) =1 (mod n) rsme(l1,n-1,n, n in binary form) \\ 
+ [l1] \bigcup [n-l1] \bigcup getBases(n,l2..lm), elif m>1 and (l1,n)=1 and l1^(n-1) =1 (mod n) rsme(l1,n-1,n, n in binary form) \\ 
+ [],elif m=1 \\
+ getBases(n,l2..lm),else  \end{cases}
+$$
+
+
+~~~~~{.haskell}
+<<getBases>>=
+getBases n (hl:tl)=
+    if ((euclidean hl n)==1 && (rsme hl (n-1) n (reverseList (generateBinary [] (n-1))))==1) 
+        then if ((length tl)==0 ) then [hl] ++ [n-hl] 
+        else [hl] ++ [n-hl] ++ (getBases n tl)
+    else 
+        if ((length tl)==0 ) then []
+        else (getBases n tl)
+@
+~~~~~
+
+~~~~~{.haskell}
+<<euclidean>>=
+euclidean a b =
+    if (b>0)
+        then (euclidean b (mod a b) )
+        else a
+@
+~~~~~
+
+~~~~~{.haskell}
+<<reverseList>>=
+reverseList [] = []
+reverseList (x:xs) = reverseList xs ++ [x]
+@
+~~~~~
+
+~~~~~{.haskell}
+<<generateBinary>>=
+generateBinary l n=
+    if (n==0)
+        then l
+    else (generateBinary ( [(mod n 2)] ++ l ) (quot n 2))
+@
+~~~~~
+
+~~~~~{.haskell}
+<<rsme>>=
+rsme b k n (ht:tt)= do
+    let a = 1
+    if (k==0)
+        then a
+        else do
+            let c=b
+            let aa = if (ht==1)
+                then b
+                else a
+            (forLoopRsme aa c n k tt)
+@
+~~~~~
+
+
+
+~~~~~{.haskell}
+<<forLoopRsme>>=
+-- forLoopRsme :: Integer->Integer->Integer->Integer->[Integer]->Integer
+forLoopRsme a c n k (ht:tt) = do 
+    let cc =(mod (c*c) n)
+    
+    let aa = if (ht==1)
+            then
+                (mod (cc*a) n)
+            else 
+                a
+    if ( (length tt)==0 ) 
+        then aa
+    else (forLoopRsme aa cc n k tt)
+@
+~~~~~
+
+~~~~~{.haskell}
+<<*>>=
+
+<<getBasesWrapper>>
+<<getBases>>
+<<euclidean>>
+<<reverseList>>
+<<generateBinary>>
+<<rsme>>
+<<forLoopRsme>>
+
+@
+~~~~~
+#Performance table{#performance} 
