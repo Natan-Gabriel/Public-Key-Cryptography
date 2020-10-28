@@ -78,7 +78,7 @@ $b^{n-1}$ = 1 (mod n) (1)
 An odd composite natural number n is called pseudoprime to the
 base b if (b, n) = 1 and (1) holds.
 
-Because for $\forall b\ in\ Z$ with |b| >= 2 there are infinitely-many pseudoprimes to
+Because for $\forall b\ in\ Z$ with |b| $\ge$ 2 there are infinitely-many pseudoprimes to
 the base b,we will find bases b<n.
 
 
@@ -91,9 +91,9 @@ We will shrink our search space using the first part of (i) from the following t
 
 Let n in N be an odd composite.
 
-(i) n pseudoprime to b => n pseudoprime to -b and $b^{-1}$, where $b^{-1}$ is the inverse modulo n of b. (2)
+(i) n pseudoprime to b $\implies$ n pseudoprime to -b and $b^{-1}$, where $b^{-1}$ is the inverse modulo n of b. (2)
 
-(ii) n pseudoprime to b1 and b2 => n pseudoprime to b1b2.
+(ii) n pseudoprime to b1 and b2 $\implies$ n pseudoprime to b1b2.
 
 (iii) If n fails (1) for a single base b < n, then n fails (1) for at
 least half of the possible bases b < n.
@@ -175,13 +175,13 @@ Proof of this lemma:
 
 From (1) we have b|a-c,so there is a y such that by=a-c.If there is
 a d such that d divides a and b ,then it will also divide c=a-by.
-=>any divisor of a and b is a divisor of c and b. (2)
+$\implies$ any divisor of a and b is a divisor of c and b. (2)
 Suppose (a,b)=x and (c,b)=y.Using (2) we have that x|y and y|x ,so we
 have that (a,b)=(c,b).
 
 For our problem we use this:
 
-We have a=a%b(mod b) =>using lemma (3)  we have that (a,b)=(a%b,b)
+We have a=a%b(mod b) $\implies$ using lemma (3)  we have that (a,b)=(a%b,b)
 
 
 ~~~~~{.haskell}
