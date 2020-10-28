@@ -9,7 +9,7 @@ base b if (b, n) = 1 and (1) holds.
 Because ∀b ∈ Z with |b| ≥ 2, there are infinitely-many pseudoprimes to
 the base b,we will find bases b from Zb
 
-We also have that every odd natural number is pseudoprime to the bases b = ±1
+We also have that every odd natural number is pseudoprime to the bases b = ±1 (1)
 
 Input: b, k, n ∈ N with b < n and k =
 Pt
@@ -19,7 +19,7 @@ i
 Output: a = b
 k mod n.
 
-We will shorten our search space using the following theorem:
+We will shorten our search space using the first part of (i) from the following theorem:
 
 Let n ∈ N be an odd composite.
 (i) n pseudoprime to b ⇒ n pseudoprime to −b and b−1
@@ -31,6 +31,16 @@ is the inverse modulo n of b.
 (iii) If n fails (1) for a single base b < n, then n fails (1) for at
 least half of the possible bases b < n.
 
+We didn't use 2nd part from (i) and (ii) because it would add 
+more complexity to our program (in understanding not in efficiency) , and the benefits are few(if any) ,at least for numbers relatively small.
+By the way,for finding the inverse you can use Extended Euler’s GCD algorithm having complexity O(Log n) - works when b and n are coprime.
+
+
+
+
+So,using these improvements,our algorithm will compute the correct bases with
+respect to which the given number is pseudoprime only if the given number is an
+odd composite number!
 
 
 Let define Repeated Squaring Modular Exponentiation (rsme) function:
