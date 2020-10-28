@@ -59,6 +59,13 @@ author: Tiutiu Natan-Gabriel,937
 I will implement an algorithm for determining all bases b with respect to which a composite odd number
 n is pseudoprime. In this implementation I will use repeated squaring modular exponentiation method (we will use rsme as a shortcut).
 
+In order to generate the documentation written using markdown format , run **pandoc -t latex -o main.pdf main.nw** .
+
+In order to generate the source code file, run **notangle main.nw>main.hs** .
+
+Once you have the source code file,start the interpreter using command **ghci** ,then load the file using **:l main.hs** and finally run **getBasesWrapper YOURNUMBER** , for example **getBasesWrapper 1725** in order to find 
+ all bases b with respect to which  the given YOURNUMBER is pseudoprime.
+
 #Theoretical support {#introduction}
 
 By Fermat’s Little Theorem, if n is prime, then $\forall b\ in\ Z$ (enough
