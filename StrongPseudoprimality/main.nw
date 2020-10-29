@@ -57,16 +57,20 @@ author: Tiutiu Natan-Gabriel,937
 
 # Introduction {#introduction}
 I will implement an algorithm for determining all bases b with respect to which a composite odd number
-n is pseudoprime. In this implementation I will use repeated squaring modular exponentiation method (we will use rsme as a shortcut).
+n is pseudoprime (1st part) and an algorithm for determining all bases b with respect to which a composite odd number
+n is strong pseudoprime(2nd part). In this implementation I will use repeated squaring modular exponentiation method (we will use rsme as a shortcut).
 
 In order to generate the documentation written using markdown format , run **pandoc -t latex -o main.pdf main.nw** .
 
 In order to generate the source code file, run **notangle main.nw>main.hs** .
 
 Once you have the source code file,start the interpreter using command **ghci** ,then load the file using **:l main.hs** and finally run **getBasesWrapper YOURNUMBER** , for example **getBasesWrapper 1725** in order to find 
- all bases b with respect to which  the given YOURNUMBER is pseudoprime.
+ all bases b with respect to which  the given YOURNUMBER is pseudoprime. Also you can run **getStrongPseudoprimeBasesWrapper YOURNUMBER** , for example **getStrongPseudoprimeBasesWrapper 65** in order to find 
+ all bases b with respect to which  the given YOURNUMBER is strong pseudoprime.
 
 #Theoretical support {#introduction}
+
+**Theorem**
 
 By Fermat’s Little Theorem, if n is prime, then $\forall b\ in\ Z$ (enough
 b < n) with (b, n) = 1 we have:
@@ -75,8 +79,12 @@ b < n) with (b, n) = 1 we have:
 $b^{n-1}$ = 1 (mod n) (1)
 \end{center}
 
+**Definition**
+
 An odd composite natural number n is called pseudoprime to the
 base b if (b, n) = 1 and (1) holds.
+
+**Observations**
 
 Because for $\forall b\ in\ Z$ with |b| $\ge$ 2 there are infinitely-many pseudoprimes to
 the base b,we will find bases b<n.
@@ -85,7 +93,7 @@ the base b,we will find bases b<n.
 We also have that every odd natural number is pseudoprime to the bases b = $\pm$ 1 (3)
 
 
-We will shrink our search space using the first part of (i) from the following theorem:
+We will shrink our search space (for pseudoprimality algorithm) using the first part of (i) from the following theorem:
 
 **Theorem**
 
@@ -98,7 +106,7 @@ Let n in N be an odd composite.
 (iii) If n fails (1) for a single base b < n, then n fails (1) for at
 least half of the possible bases b < n.
 
-
+**Observations**
 
 So,using these improvements ((1) and (2)), our algorithm will compute the correct bases with
 respect to which the given number is pseudoprime only if the given number is an
@@ -109,7 +117,26 @@ more complexity to our program (in understanding not in efficiency) , and the be
 By the way,for finding the inverse you can use Extended Euler’s GCD algorithm having complexity O(Log n) - works when b and n are coprime.
 
 
-#Implementation{#implementation}
+
+**Definition**
+
+Let n in N be odd composite and write n - 1 = $2^{s}$t for some odd
+t. Let b in Z with (b, n) = 1. If n and b satisfy the condition
+
+\begin{center}
+
+$b^{t}$ = 1 (mod n) or exists 0 $\le$ j < s : $b^{2^{j}t}$ = -1 (mod n) 
+
+\end{center}
+
+then n is called strong pseudoprime to the base b.
+
+**Theorem**
+
+Strong pseudoprime to the base b $\implies$ pseudoprime to the base b.
+
+
+#Pseudoprimality {#p}
 
 
 Our first function is a wrapper function having the following mathematical model:
@@ -264,7 +291,9 @@ rsme b k n (ht:tt)= do
             let aa = if (ht==1)
                 then b
                 else a
-            (forLoopRsme aa c n k tt)
+            if (length(tt)==0)
+                then aa
+            else (forLoopRsme aa c n k tt)
 @
 ~~~~~
 
@@ -294,6 +323,119 @@ forLoopRsme a c n k (ht:tt) = do
 @
 ~~~~~
 
+
+
+
+
+#Strong pseudoprimality {#strongp}
+
+
+Our first function is a wrapper function having the following mathematical model:
+
+$$
+ getStrongPseudoprimeBasesWrapper(n)= getStrongPseudoprimeBasesWrapper( n,1 ... n-1 )
+$$
+
+
+~~~~~{.haskell}
+<<getStrongPseudoprimeBasesWrapper>>=
+getStrongPseudoprimeBasesWrapper n=(getStrongPseudoprimeBases n  ([x | x <- [1..(n-1)]]) )
+@
+~~~~~
+
+The getStrongPseudoprimeBases function which is called from the wrapper function, calls euclidean and strongPseudoprime functions with corresponding parameters
+ for each number in the given interval(1...n-1 in our case). 
+
+In the mathematical model we will replace the call of strongPseudoprime(hl, n, getS(n-1,0), (n-1)/$2^{getS(n-1,0)}$) with isPseudoprime(hl,n) for simplicity.
+Also we will use gSPB as a shortcut for getStrongPseudoprimeBases.
+
+$$
+ gSPB(n;l1,l2..lm)= \begin{cases} [l1], if\ m=1\ and\ (l1,n)=1\ and\ isPseudoprime(l1,n) \\ 
+ [l1] \bigcup gSPB(n,l2..lm), elif\ m>1\ and\ (l1,n)=1\ and\ isPseudoprime(l1,n) \\ 
+ [],elif\ m=1 \\
+ gSPB(n,l2..lm),else  \end{cases}
+$$
+
+
+
+~~~~~{.haskell}
+<<getStrongPseudoprimeBases>>=
+getStrongPseudoprimeBases n (hl:tl)=
+    if ((euclidean hl n)==1 && (strongPseudoprime hl n (getS (n-1) 0) (quot (n-1) (2^(getS (n-1) 0))) )==1) 
+        then if ((length tl)==0 ) then [hl]
+        else [hl] ++ (getStrongPseudoprimeBases n tl)
+    else 
+        if ((length tl)==0 ) then []
+        else (getStrongPseudoprimeBases n tl)
+@
+~~~~~
+
+Function strongPseudoprime returns 1 if the given number n is pseudoprime to 
+the given bases b. s and t define the exponent n-1.
+
+This is the mathematical model:
+
+$$
+ strongPseudoprime(b,n,s,t)= \begin{cases} 1 , if\ b^{t} \ mod\ n =1\ or\  exists\ 0 \le j < s : b^{2^{j}t} = -1 (mod\ n) \\ 
+  0 ,else  \end{cases}
+$$
+
+
+~~~~~{.haskell}
+<<strongPseudoprime>>=
+strongPseudoprime b n s t=
+
+    if( (rsme b t n (reverseList (generateBinary [] t)))==1 || (existsIntermediateJ 0 s b n t)==1 )
+        then 1
+    else 0
+@
+~~~~~
+
+Function existsIntermediateJ returns 1 if exists 0 $\le$ j < s : $b^{2^{j}t}$ = -1 (mod n) and 0 else.
+
+This is the mathematical model:
+
+$$
+ existsIntermediateJ(j,s,b,n,t)= \begin{cases} 0 , if\ j = s  \\ 
+  1 ,else\ if\ b^{2^{j}t} = -1 (mod\ n) \\
+  existsIntermediateJ(j+1,s,b,n,t) ,else  \end{cases}
+$$
+
+~~~~~{.haskell}
+<<existsIntermediateJ>>=
+existsIntermediateJ j s b n t=
+    if (j==s)
+        then 0
+    else if ( (rsme b (2^j*t) n (reverseList (generateBinary [] (2^j*t))))==(n-1) )
+        then 1
+    else (existsIntermediateJ (j+1) s b n t)
+@
+~~~~~
+
+Function getS returns s for a given n,where n= $2^{s}t$ . 
+
+This is the mathematical model:
+
+$$
+ getS(n,s)= \begin{cases} s , if\ n\ mod\ 2 = 1  \\ 
+  getS(n/2,s+1) ,else  \end{cases}
+$$
+
+~~~~~{.haskell}
+<<getS>>=
+-- getS :: Integer->Integer->Integer
+getS n s=
+    if ((mod n 2)==1)
+        then s
+    else (getS (quot n 2) (s+1))
+@
+~~~~~
+
+
+
+
+
+
 ~~~~~{.haskell}
 <<*>>=
 
@@ -304,6 +446,12 @@ forLoopRsme a c n k (ht:tt) = do
 <<generateBinary>>
 <<rsme>>
 <<forLoopRsme>>
+
+<<getStrongPseudoprimeBasesWrapper>>
+<<getStrongPseudoprimeBases>>
+<<strongPseudoprime>>
+<<existsIntermediateJ>>
+<<getS>>
 
 @
 ~~~~~
