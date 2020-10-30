@@ -279,6 +279,21 @@ for i=1 to t do
 write(a)
 
 
+**Proof of corectness for Repeated Squaring Modular Exponentiation:**
+
+We have k = $\sum_{i=0}^{t} k_i*2^{i}$
+
+if k=0 => we return 1 because any integer to the power 0 is 1.
+
+At each step we have $b^{2^{i}}$ mod n,starting from i=1(from right in binary representation).
+Using $b^{2^{i}}$ mod n, we compute $b^{2^{i+1}}$ mod n = $(b^{2^{i}})^{2}$ mod n = $(b^{2^{i}} mod\ n)^{2}$.
+If the ${k_i}$ is 1 then we compute :  ( new a= new c* old a mod n ).This holds because
+ $b^{\sum_{i=0}^{t} k_i*2^{i}}$ = $b^{ k_0*2^{0}}$ * $b^{ k_1*2^{1}}$ * ...* $b^{ k_t*2^{t}}$ and then 
+ $b^{k}$ mod n = $b^{\sum_{i=0}^{t} k_i*2^{i}}$ mod n = ($b^{ k_0*2^{0}}$ mod n) * ($b^{ k_1*2^{1}}$ mod n) * ...* ($b^{ k_t*2^{t}}$ mod n) ,
+where ($b^{ k_i*2^{i}}$ mod n) is our c computed at i-th iteration(for $k_i$=1).
+
+
+
 
 ~~~~~{.haskell}
 <<rsme>>=
@@ -431,13 +446,44 @@ getS n s=
 @
 ~~~~~
 
+#Tests performed {#tests}
 
+![tests](tests.jpg)
 
+~~~~~{.haskell}
+<<tests>>=
+f n= length (getStrongPseudoprimeBasesWrapper n) <= (quot (n-1) 4)
 
+prop_1=f 15
+prop_2=f 81
+prop_3=f 102
+prop_4=f 303
+prop_5=f 816
+prop_6=f 1002
+prop_7=f 1205
+prop_8=f 2589
+prop_9=f 4533
+prop_10=f 6054
+prop_11=f 10203
+prop_12=f (7^4)
+prop_13=f (9^4)
+prop_14=f (11^4)
+prop_15=f (7^5)
+prop_16=f (9^6)
+
+return []
+
+main = $(quickCheckAll)
+
+@
+~~~~~
 
 
 ~~~~~{.haskell}
 <<*>>=
+{-# LANGUAGE TemplateHaskell #-}
+import Test.QuickCheck
+import Test.QuickCheck.All
 
 <<getBasesWrapper>>
 <<getBases>>
@@ -452,6 +498,8 @@ getS n s=
 <<strongPseudoprime>>
 <<existsIntermediateJ>>
 <<getS>>
+
+<<tests>>
 
 @
 ~~~~~

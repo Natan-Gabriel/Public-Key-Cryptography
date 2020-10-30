@@ -1,3 +1,6 @@
+{-# LANGUAGE TemplateHaskell #-}
+import Test.QuickCheck
+import Test.QuickCheck.All
 
 getBasesWrapper n=[1]++[n-1]++(getBases n  ([x | x <- [2..((quot n 2)+1)]]) )
 getBases n (hl:tl)=
@@ -66,4 +69,28 @@ getS n s=
     if ((mod n 2)==1)
         then s
     else (getS (quot n 2) (s+1))
+
+f n= length (getStrongPseudoprimeBasesWrapper n) <= (quot (n-1) 4)
+
+prop_1=f 15
+prop_2=f 81
+prop_3=f 102
+prop_4=f 303
+prop_5=f 816
+prop_6=f 1002
+prop_7=f 1205
+prop_8=f 2589
+prop_9=f 4533
+prop_10=f 6054
+prop_11=f 10203
+prop_12=f (7^4)
+prop_13=f (9^4)
+prop_14=f (11^4)
+prop_15=f (7^5)
+prop_16=f (9^6)
+
+return []
+
+main = $(quickCheckAll)
+
 
