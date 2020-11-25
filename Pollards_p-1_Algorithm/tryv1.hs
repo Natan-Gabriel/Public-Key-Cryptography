@@ -7,6 +7,9 @@ import System.Random.MWC as MWC
 import System.Random.Stateful
 import System.Random(randomIO)
 import Control.Monad (replicateM)
+import Data.Time
+import Control.Exception
+
 
 -- import System.Random.MWC as MWC
 
@@ -164,128 +167,11 @@ computeLCMForAListWrapper l=
         then 1
     else (computeLCMForAList l 1)
 
--- hehe=do 
---     print $ MWC.create
-
--- test :: Int -> IO [Int]
--- test n = sequence $ replicate n $ randomRIO (1,6::Int)
-
--- getFirst (x:xs)=x
-
--- poateAcum n=getFirst (test n)
-
-maimai = do
-  g <- getStdGen
-  print $ take 10 (randoms g :: [Integer])
-
--- imoimogen=
-
-imogene=do
-    let rollM = uniformRM (1, 6)                 :: StatefulGen g m => g -> m Word
-    monadicGen <- MWC.create
-    replicateM 10 (rollM monadicGen) :: IO [Word]
-    -- let pureGen = mkStdGen (randomRIO (10,30))
-    -- runStateGen_ pureGen (replicateM 10 . rollM) :: [Word]
-
--- randomElementFromList :: [a] -> IO a
--- randomElementFromList list = do
---   r <- rng (length list)
---   return $ list !! r
-
--- getRandom :: Integer -> Integer ->IO  Integer
--- getRandom a b= do 
---     num <- randomRIO (a,b) :: IO Integer  
---     print (num)
---     if (1==1) 
---        then num
---     else num
---    if(1==1)
---        then num
---     else 1
-
--- getRandom a b=do 
---     g <- newStdGen
---     let a=(randomR (1, 10) g)
---     if (1==1 || 1==2)
---         then 0
---     else 1
-
--- haidee=do
---     print ( getRandom 10 15 )
-
--- getFirstRandom :: IO ()
--- getFirstRandom = do
---     -- num :: Float
---     num <- randomIO :: IO Integer
---     -- This "extracts" the float from IO Float and binds it to the name num
---     print $ euclidean num num
-
--- randomList :: Int -> [Double]
--- randomList seed = randoms (mkStdGen seed) :: [Double]
-
--- haide = do
---     g <- newStdGen
---     print 5
---     if (1==1)
---         then (randomR (1, 10) g)
---     else (randomR (1, 10) g)
-
--- testRandom :: Int -> Int
--- testRandom i = fst (next (mkStdGen i))
-
--- nextBounded :: Int -> StdGen -> (Int, StdGen)
--- nextBounded bound s = (i `mod` bound, s') where
---    (i, s') = next s
-
-
-gg=do
-   x <- randomRIO(7,10)
-   print $ euclidean x x
-
--- bounded :: Int -> Gen Int
--- bounded b = liftM (`mod` b) arb
-
--- removeAt index (x:xs)=
---     if (index==0)
---         then (x,xs)
---         else [x] ++ (removeAt (index-1) xs)
-
--- rnd_select :: (Eq a, RandomGen g) => [a] -> Int -> g -> ([a], g)
--- rnd_select [] _ gen = ([], gen)
--- rnd_select _ 0  gen = ([], gen)
--- rnd_select ys n gen = 
---    let (rnd_index, gen') = randomR (1, length ys) gen
---        (x, xs) = removeAt rnd_index ys
---        (xs', gen'') = rnd_select xs (n-1) gen'
---    in (x : xs', gen'')
-
-
--- data Coin = Heads | Tails deriving (Show, Enum, Bounded)
-
--- instance Random Coin where
---   randomR (a, b) g =
---     case randomR (fromEnum a, fromEnum b) g of
---       (x, g') -> (toEnum x, g')
---   random g = randomR (minBound, maxBound) g
-
--- forthmain = do
---   g <- newStdGen
---   print . take 1 $ (randoms g :: [Coin])
-
--- mainn = do
---   g <- getStdGen
---   print $ take 1 (randoms g :: [Integer])
-
-
--- mainnn = replicateM 10 (randoms ::  Float) >>= print
-
+-- Pollard's p-1 algorithm is efficiently in finding any prime factor p of an 
+--odd composite number for which p-1 has only small prime divisors
 
 -- pollardFct :: Integer-> Integer->Integer
 pollard n b a = do
-    -- let b=7
-    -- if (b==a || b==n)
-    --     then  0
-    -- else  1
     let k=computeLCMForAListWrapper [x | x <- [1..b]]
     let aa=(rsmeWrapper a k n)
     let d= euclidean (aa-1) n
@@ -294,21 +180,55 @@ pollard n b a = do
     else   d
 
 
-
-    -- return 1
-
 memestoica n b a =pollard n b a -- do
 --   n <- getLine
 --   let result = n
 --   print result
 
 pollardWrapper n b=do
-   x <- randomRIO(7,10)
-   print $ pollard n b x --euclidean b (euclidean n x)
+    x <- randomRIO(7,10)
+    print $ pollard n b x
+    -- print  "enter value for y: " 
+    -- input2 <- getLine 
+    -- let x = (read input1 :: Int)
+    -- print $ pollard n b x --euclidean b (euclidean n x)
+
+-- mainFunction=do 
+--     print "Choose a bound"
+--     x <- getLine
+--     print 1
+    -- print input1
+    -- putStrLn "enter value for y: " 
+    -- input2 <- getLine 
+    -- let x = (read input1 :: Int)
+    -- let y = (read input2 :: Int)
 
 
+mainFunction=do
+    print "Choose a bound,the implicit one is 13:"
+    x <- getLine
+    let x1 = (read x :: Int) 
+    
 
+    -- result <- try (let x1 = (read x :: Int)) :: IO (Either SomeException Int)
+    -- case result of
+    --     Left ex  -> putStrLn $ "Caught exception: " ++ show ex
+    --     Right val -> putStrLn $ "The answer was: " ++ show val
 
+    -- catch ( let x1 = (read x :: Int) ) handler
+    -- where
+    --     handler :: SomeException -> IO ()
+    --     handler ex = putStrLn $ "Next time input an integer! " ++ show ex
+--     print "GCD of x and y is:"
+--     start <- getCurrentTime
+    print x1
+
+mainEx = do
+    x <- getLine
+    result <- try (read x :: Int ) :: IO (Either SomeException Int)
+    case result of
+        Left ex  -> putStrLn $ "Caught exception: " ++ show ex
+        Right val -> putStrLn $ "The answer was: " ++ show val
 
 -- main=do{
 --     g<-getStdGen;
