@@ -186,7 +186,8 @@ memestoica n b a =pollard n b a -- do
 --   print result
 
 pollardWrapper n b=do
-    x <- randomRIO(7,10)
+    x <- randomRIO(0,10)
+    print x
     print $ pollard n b x
     -- print  "enter value for y: " 
     -- input2 <- getLine 
@@ -208,6 +209,7 @@ mainFunction=do
     print "Choose a bound,the implicit one is 13:"
     x <- getLine
     let x1 = (read x :: Int) 
+
     
 
     -- result <- try (let x1 = (read x :: Int)) :: IO (Either SomeException Int)
@@ -223,12 +225,12 @@ mainFunction=do
 --     start <- getCurrentTime
     print x1
 
-mainEx = do
-    x <- getLine
-    result <- try (read x :: Int ) :: IO (Either SomeException Int)
-    case result of
-        Left ex  -> putStrLn $ "Caught exception: " ++ show ex
-        Right val -> putStrLn $ "The answer was: " ++ show val
+-- mainEx = do
+--     x <- getLine
+--     result <- try (read x :: Int ) :: IO (Either SomeException Int)
+--     case result of
+--         Left ex  -> putStrLn $ "Caught exception: " ++ show ex
+--         Right val -> putStrLn $ "The answer was: " ++ show val
 
 -- main=do{
 --     g<-getStdGen;
