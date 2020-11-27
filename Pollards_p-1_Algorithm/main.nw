@@ -243,6 +243,7 @@ computeLCMForAList (x:xs) result=
 @
 ~~~~~
 
+~~~~~{.haskell}
 <<computeLCMForAListWrapper>>=
 computeLCMForAListWrapper l=
     if ((length l)==0)
@@ -251,8 +252,67 @@ computeLCMForAListWrapper l=
 @
 ~~~~~
 
--- Pollard's p-1 algorithm is efficiently in finding any prime factor p of an 
---odd composite number for which p-1 has only small prime divisors
+# Pollard's p-1 {#pollard}
+
+Pollard's p-1 algorithm is efficiently in finding any prime factor p of an 
+odd composite number for which p-1 has only small prime divisors.
+We will find then a multiple k of p-1 without knowing p-1,
+as a product of powers of small primes.
+
+**Theorem**
+
+By Fermat’s Little Theorem,we have that if n is prime, then $\forall b\ in\ Z$ (enough
+b < n) with (b, n) = 1 we have:
+
+\begin{center}
+$b^{n-1}$ = 1 (mod n) (1)
+\end{center}
+
+**Observation**
+
+The situation d = n, in which case the algorithm fails, occurs
+with a negligible probability.
+
+In our implementation,as candidates for k,we will consider k = lcm{1, . . . , B}. 
+
+**Proof of corectness**
+
+
+We want to find a divisor of n.
+Consider that k is a multiple of p-1(otherwise the algorithm won't work),that is k=(p-1)\*q .
+*(As an observation,if k < bound,then k=(p-1)\*q is always true )*
+
+If p | a doesn't hold,then, $a^{k}$ = $a^{(p-1)*q}$ = 1 (mod p) ,because $a^{p-1}$ = 1 (mod p),using Fermat’s Little Theorem and of course $1^{q}$ = 1 (mod p). 
+
+So,we obtained $a^{k}$ = 1 (mod p) $\implies$ p | $a^{k}$ - 1 .
+
+Now, if p | n $\implies$ p | ($a^{k}$ - 1,n) . Even more, if n | $a^{p-1}$ doesn't hold, then d=($a^{k}$ - 1,n) is a non-trivial 
+divisor of n.
+
+In conclusion, we can find any prime factor p of an composite odd n for which p-1 has only small primes
+(or, for which p-1 divides k=lcm{1, . . . , B} ,more precisely)
+
+
+**Important obeservation(borderline case)**
+
+Please pay attention at picking a suitable bound B,that is, avoid
+bounds for which $a^{k}$ = 1 (mod n) $\forall a\ in\ Z$.
+
+Example: Take number n=$37^{2}$=1369 and the bound B=37. So,k=lcm{1, . . . , B}.
+Using Euler's function, we have that $\varphi$ ($37^{2}$)=$37^{2}$ \*(1-$\frac{1}{37}$)=36\*37
+So,using the Euler's Theorem,we have  $a^{lcm\{1,...,37\}}$ = $a^{36*37*z}$ = $b^{36*37}$ = $b^{\varphi (37^{2})}$ = 1 (mod $37^{2}$) . 
+We used that lcm{1,...,37}=36\*37\*z,where z is an integer and we defined b = $a^{z}$.
+
+So,for $\forall a\ in\ Z$ we will have that $a^{k}$=$a^{lcm\{1,...,37\}}$ = 1 (mod $37^{2}$) , that is, we will obtain
+an FAILURE for each iteration of our algorithm $\implies$ we will have an infinite loop !
+
+
+**Algorithms**
+
+
+
+
+
 
 ~~~~~{.haskell}
 <<pollardFunction>>=
@@ -272,17 +332,11 @@ pollardFunction n b a = do
 <<pollard>>=
 pollard n b=do
     r <- randomRIO(0,10)
-    -- print r
-
-    -- print $ pollard n b x
     print  "input a valid value for the bound,or input NO if you want to use the default bound,that is 17" 
     inputBound <- getLine 
-
     let bound = if(inputBound=="NO" || inputBound=="no")
         then 17
         else (read inputBound :: Integer)
-    -- print $ pollard n bound x --euclidean b (euclidean n x)
-    -- print bound
     print $ pollardFunction n bound r
 @
 ~~~~~

@@ -173,8 +173,8 @@ pollardFunction n b a = do
 
 
 
-pollard n b=do
-    r <- randomRIO(0,10)
+pollard n=do
+    r <- randomRIO(2,n-2)
     -- print r
 
     -- print $ pollard n b x
@@ -186,7 +186,31 @@ pollard n b=do
         else (read inputBound :: Integer)
     -- print $ pollard n bound x --euclidean b (euclidean n x)
     -- print bound
-    print $ pollardFunction n bound r
+    return $ pollardFunction n bound r
+
+pollard_1_Iteration=
+    
+
+pollardLoop n b=do
+    r <- randomRIO(2,n-2)
+    print r
+    let a=pollardFunction n b r
+    print a
+    -- print 1
+    if(a==0)
+        then (pollardLoop n b)
+        else (print a)
+    -- print 1
+
+pollardLoopWithIterations n b iterations=do
+    r <- randomRIO(2,n-2)
+    -- print r
+    let a=pollardFunction n b r
+    -- print a
+    -- print 1
+    if(a==0 && iterations>0)
+        then (pollardLoopWithIterations n b (iterations-1))
+        else (return a)
 
 
 
@@ -221,6 +245,8 @@ prop_154=test_lcmForList [72,245,90,83] (lcm 72 (lcm 245 (lcm 90 83)))
 
 
 test_pollard n b a result= (pollardFunction n b a )==result
+test_pollard n b a result= (pollardFunction n b a )==result
+
 
 testCCC_pollard n b result=do
     r <- randomRIO(0,10)
