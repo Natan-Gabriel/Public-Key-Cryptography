@@ -1,17 +1,9 @@
 {-# LANGUAGE TemplateHaskell #-}
 import Test.QuickCheck
 import Test.QuickCheck.All
-import Numeric.Natural
 import System.Random
-import System.Random.MWC as MWC
-import System.Random.Stateful
-import System.Random(randomIO)
-import Control.Monad (replicateM)
 import Data.Time
-import Control.Exception
 
-
--- import System.Random.MWC as MWC
 
 -- Function generateBinary transforms a decimal number into a binary number.
 -- This is the mathematical model:
@@ -170,8 +162,8 @@ computeLCMForAListWrapper l=
 -- Pollard's p-1 algorithm is efficiently in finding any prime factor p of an 
 --odd composite number for which p-1 has only small prime divisors
 
--- pollardFct :: Integer-> Integer->Integer
-pollard n b a = do
+-- pollardFunction :: Integer-> Integer->Integer->Integer
+pollardFunction n b a = do
     let k=computeLCMForAListWrapper [x | x <- [1..b]]
     let aa=(rsmeWrapper a k n)
     let d= euclidean (aa-1) n
@@ -180,125 +172,40 @@ pollard n b a = do
     else   d
 
 
-memestoica n b a =pollard n b a -- do
---   n <- getLine
---   let result = n
---   print result
 
-pollardWrapper n b=do
-    x <- randomRIO(0,10)
-    print x
-    print $ pollard n b x
-    -- print  "enter value for y: " 
-    -- input2 <- getLine 
-    -- let x = (read input1 :: Int)
-    -- print $ pollard n b x --euclidean b (euclidean n x)
+pollard n b=do
+    r <- randomRIO(0,10)
+    -- print r
 
--- mainFunction=do 
---     print "Choose a bound"
---     x <- getLine
---     print 1
-    -- print input1
-    -- putStrLn "enter value for y: " 
-    -- input2 <- getLine 
-    -- let x = (read input1 :: Int)
-    -- let y = (read input2 :: Int)
+    -- print $ pollard n b x
+    print  "input a valid value for the bound,or input NO if you want to use the default bound,that is 17" 
+    inputBound <- getLine 
 
-
-mainFunction=do
-    print "Choose a bound,the implicit one is 13:"
-    x <- getLine
-    let x1 = (read x :: Int) 
-
-    
-
-    -- result <- try (let x1 = (read x :: Int)) :: IO (Either SomeException Int)
-    -- case result of
-    --     Left ex  -> putStrLn $ "Caught exception: " ++ show ex
-    --     Right val -> putStrLn $ "The answer was: " ++ show val
-
-    -- catch ( let x1 = (read x :: Int) ) handler
-    -- where
-    --     handler :: SomeException -> IO ()
-    --     handler ex = putStrLn $ "Next time input an integer! " ++ show ex
---     print "GCD of x and y is:"
---     start <- getCurrentTime
-    print x1
-
--- mainEx = do
---     x <- getLine
---     result <- try (read x :: Int ) :: IO (Either SomeException Int)
---     case result of
---         Left ex  -> putStrLn $ "Caught exception: " ++ show ex
---         Right val -> putStrLn $ "The answer was: " ++ show val
-
--- main=do{
---     g<-getStdGen;
---     let [s]=take 1 (randomStuff g)
---     ;print s
--- }
--- randomStuff g= work (randomRs (0.0,1.0) g)
-
--- work (r:rs)=
---     let n=truncate (r * 7.0)+1
+    let bound = if(inputBound=="NO" || inputBound=="no")
+        then 17
+        else (read inputBound :: Integer)
+    -- print $ pollard n bound x --euclidean b (euclidean n x)
+    -- print bound
+    print $ pollardFunction n bound r
 
 
 
+-- rop_random :: Integer-> Integer -> Integer -> Bool
+-- rop_random b k n = (rsmeWrapper b k n) == (getMod b k n)
+
+-- rsmeTest :: Int -> Int -> Int -> Bool
+rsmeTest b k n = (rsmeWrapper b k n) == (getMod b k n)
+
+prop_1=rsmeTest 15 12 37
+prop_2=rsmeTest 22 11 45
+prop_3=rsmeTest 12 87 34
+prop_4=rsmeTest 3 16 7
+prop_5=rsmeTest 90 6 7
+prop_6=rsmeTest 34 5 7
+prop_7=rsmeTest 34 51 74
+prop_8=rsmeTest 23 45 2
 
 
-
-
-
-
-
-    
-
--- data Nat =  Int Int deriving Eq
-
--- instance Arbitrary Nat where
---   arbitrary = do
---     x <- arbitrary
---     return x
-
--- prop_gen=prop_random 
--- functionf:: Integer-> Integer
--- functionf a = randomRIO (1, 1000) 
-
--- prop_gg :: Integer-> Bool
--- prop_gg a=  do
---     let rr=randomRIO (1, 1000) 
---     (rop_random rr rr rr)
-    
-
-rop_random :: Integer-> Integer -> Integer -> Bool
-rop_random b k n = (rsmeWrapper b k n) > (getMod b k n)
-
--- revapp :: Int -> Int -> Int -> Bool
--- revapp b k n = (rsmeWrapper b k n) == (getMod b k n)
-
-
--- simpleMathTests :: TestTree
--- simpleMathTests = testGroup "Simple Math Tests"
---   [ testCase "Small Numbers" .
---       revapp 3 4 5 @?= 1
---   ]
-
--- elements :: [a] -> Gen a
-
--- generate=  
-
--- prop_1=revapp 15 12 37
--- prop_2=revapp 22 11 45
--- prop_3=revapp 12 87 34
--- prop_4=revapp 3 16 7
--- prop_5=revapp 90 6 7
--- prop_6=revapp 34 5 7
--- prop_7=revapp 34 51 74
--- prop_8=revapp 23 45 2
--- prop_9=revapp 0 0 0
--- prop_10=revapp 1 0 0
--- prop_11=revapp 0 1 0
--- -- prop_12=revapp 0 0 1
 
 test_lcm a b c =(computeLCMFor2Numbers a b)==c
 test_lcmForList l c =(computeLCMForAListWrapper l)==c
@@ -313,6 +220,40 @@ prop_153=test_lcmForList [192,101,7] (lcm 192 (lcm 101 7))
 prop_154=test_lcmForList [72,245,90,83] (lcm 72 (lcm 245 (lcm 90 83)))
 
 
+test_pollard n b a result= (pollardFunction n b a )==result
+
+testCCC_pollard n b result=do
+    r <- randomRIO(0,10)
+    -- print r
+
+    -- print $ pollard n b x
+    -- print  "input a valid value for the bound,or input NO if you want to use the default bound,that is 17" 
+    -- inputBound <- getLine 
+
+    -- let bound = if(inputBound=="NO" || inputBound=="no")
+    --     then 17
+    --     else (read inputBound :: Integer)
+    -- print $ pollard n bound x --euclidean b (euclidean n x)
+    -- print bound
+    -- if(print $ pollard n bound x)
+    --     then 1
+    -- print $ ( test_pollard (2^7-1) 17 r 0 )
+    -- let a= test_pollard (2^7-1) 17 r 0
+    -- print a
+    return $ test_pollard n b r result
+    -- return a
+    -- print $ (pollardFunction n 17 r)==result
+
+
+prop_200=test_pollard (2^7-1) 17 9 0
+prop_201=test_pollard (2^13-1) 17 17 0
+prop_202=test_pollard (2^17-1) 17 53 0
+prop_203=test_pollard (2^19-1) 17 61 0
+prop_204=test_pollard (2^31-1) 17 63 0
+
+-- prop_250=testCCC_pollard (2^31-1) 71 0 
+-- prop_251=testCCC_pollard (2^61-1) 73 0 
+
 
 return []
 
@@ -320,7 +261,7 @@ return []
 
 
 
-mainasdfg = $(quickCheckAll)
+mainTest = $(quickCheckAll)
 
 
--- main = quickCheck revapp
+-- main = quickCheck rsmeTest
