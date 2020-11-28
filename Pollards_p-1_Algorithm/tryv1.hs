@@ -2,6 +2,7 @@
 import Test.QuickCheck
 import Test.QuickCheck.All
 import Test.QuickCheck.Monadic
+import Test.QuickCheck.Property
 import System.Random
 import Data.Time
 import Data.Bits
@@ -210,7 +211,7 @@ pollard n b=do
     -- print 1
     if(a==0)
         then (pollard n b)
-        else (print a)
+        else (return a)
     -- print 1
 
 
@@ -295,7 +296,11 @@ rezerva n b res=do
     if(a==0)
         then (rezerva n b res)
         else (print (a>res))
-    
+
+
+
+
+
 
 
 -- length <$> getLine
@@ -305,6 +310,34 @@ rezerva n b res=do
 --     c<-0
 --     if a == c then (return a) else (return a)
 
+
+test_pollard n b res=do
+    r <- randomRIO(2,n-2)
+    -- print r
+    let a=pollardFunction n b r
+    -- print a
+    -- print 1
+    if(a==0)
+        then (test_pollard n b res)
+        else (print True)
+
+
+test_pollard_with_iterations n b iterations=do
+    r <- randomRIO(2,n-2)
+    -- print r
+    let a=pollardFunction n b r
+    -- print a
+    -- print 1
+    if((a==0) && (iterations>0))
+        then (test_pollard_with_iterations n b (iterations-1))
+        else (return (a>0))
+
+    -- if((a==0))
+    --     then do
+    --         if((iterations>0))
+    --             then (test_pollard_with_iterations n b (iterations-1))
+    --             else 0
+    --     else (return a)
 
 -- test_pollard::Integer->Integer->monadIO mo
 -- test_pollard n b = do
@@ -317,10 +350,7 @@ rezerva n b res=do
 -- prop_factor n b iterations res= 
 --     assert ((gggg n b iterations) == res)
 
--- haiimogen n b res=  (test_pollard n b) > res
--- prop_factor n b res= (test_pollard n b) == res
 
-aici=length <$> getLine
 -- testFilesEqual = TestCase (do x <- readFile "a.txt"
 --                               y <- readFile "b.txt"
 --                               assertEqual "files not equal" x y)
@@ -329,6 +359,20 @@ aici=length <$> getLine
 -- prop_200=test_pollard_with_iterations (2^7-1) 17 10 1
 
 -- pollard_with_iterations
+
+-- rezerva1 n b res=do
+--     r <- randomRIO(2,n-2)
+--     -- print r
+--     let a=pollardFunction n b r
+--     -- print a
+--     -- print 1
+--     if(a==0)
+--         then (rezerva1 n b res)
+--         else (return (a>res))
+    -- print aa
+-- prop301=(rezerva1 10 15 0)
+-- prop302=assert (rezerva1 10 15 0) True
+-- prop303=assert "True is True!" True
 
 -- prop_200=test_pollard_with_iterations (2^7-1) 17 10 1
 -- prop_201=test_pollard_with_iterations (2^13-1) 17 10 0
@@ -350,5 +394,5 @@ aici=length <$> getLine
 
 -- mainTest = quickCheck $ prop_factor (2^7-1) 17 10 1 -- $(quickCheckAll)
 
-
--- main = quickCheck rsmeTest
+-- main = quickCheck $ assert True True --prop303
+-- main = $(quickCheckAll)
