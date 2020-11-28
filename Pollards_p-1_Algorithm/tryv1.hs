@@ -1,8 +1,11 @@
 {-# LANGUAGE TemplateHaskell #-}
 import Test.QuickCheck
 import Test.QuickCheck.All
+import Test.QuickCheck.Monadic
 import System.Random
 import Data.Time
+import Data.Bits
+import Control.Monad.IO.Class
 
 
 -- Function generateBinary transforms a decimal number into a binary number.
@@ -173,46 +176,67 @@ pollardFunction n b a = do
 
 
 
-pollard n=do
-    r <- randomRIO(2,n-2)
-    -- print r
+-- pollard n=do
+--     r <- randomRIO(2,n-2)
+--     -- print r
 
-    -- print $ pollard n b x
+--     -- print $ pollard n b x
+--     print  "input a valid value for the bound,or input NO if you want to use the default bound,that is 17" 
+--     inputBound <- getLine 
+
+--     let bound = if(inputBound=="NO" || inputBound=="no")
+--         then 17
+--         else (read inputBound :: Integer)
+--     -- print $ pollard n bound x --euclidean b (euclidean n x)
+--     -- print bound
+--     return $ pollardFunction n bound r
+
+
+pollard_wrapper n=do
     print  "input a valid value for the bound,or input NO if you want to use the default bound,that is 17" 
     inputBound <- getLine 
 
     let bound = if(inputBound=="NO" || inputBound=="no")
         then 17
         else (read inputBound :: Integer)
-    -- print $ pollard n bound x --euclidean b (euclidean n x)
-    -- print bound
-    return $ pollardFunction n bound r
+    return $ pollard n bound
 
-pollard_1_Iteration=
-    
 
-pollardLoop n b=do
-    r <- randomRIO(2,n-2)
-    print r
-    let a=pollardFunction n b r
-    print a
-    -- print 1
-    if(a==0)
-        then (pollardLoop n b)
-        else (print a)
-    -- print 1
-
-pollardLoopWithIterations n b iterations=do
+pollard n b=do
     r <- randomRIO(2,n-2)
     -- print r
     let a=pollardFunction n b r
     -- print a
     -- print 1
-    if(a==0 && iterations>0)
-        then (pollardLoopWithIterations n b (iterations-1))
+    if(a==0)
+        then (pollard n b)
+        else (print a)
+    -- print 1
+
+
+pollard_with_iterations_wrapper n iterations=do
+    print  "input a valid value for the bound,or input NO if you want to use the default bound,that is 17" 
+    inputBound <- getLine 
+
+    let bound = if(inputBound=="NO" || inputBound=="no")
+        then 17
+        else (read inputBound :: Integer)
+    return $ pollardWithIterations n bound iterations
+
+pollardWithIterations n b iterations=do
+    r <- randomRIO(2,n-2)
+    -- print r
+    let a=pollardFunction n b r
+    -- print a
+    -- print 1
+    if((a==0) && (iterations>0))
+        then (pollardWithIterations n b (iterations-1))
         else (return a)
+-- -- gggg::Integer-> Integer  -> Integer->m0 Integer
+-- gggg n b iterations=( pollardWithIterations n b iterations)
 
-
+-- gggg::Integer-> Integer  -> Integer->m0 Integer
+-- gggg n b =(eq ( pollard n b) 1)
 
 -- rop_random :: Integer-> Integer -> Integer -> Bool
 -- rop_random b k n = (rsmeWrapper b k n) == (getMod b k n)
@@ -243,51 +267,88 @@ prop_152=test_lcmForList [132,162,90] (lcm 132 (lcm 162 90))
 prop_153=test_lcmForList [192,101,7] (lcm 192 (lcm 101 7))
 prop_154=test_lcmForList [72,245,90,83] (lcm 72 (lcm 245 (lcm 90 83)))
 
+-- poateamu :: IO ()
+-- poateamu = do
+--   a <- getStdRandom $ randomR (0, 1 :: Int)
+--   b <- (pollard 7 8) 
+--   if a == b then (putStrLn "user") else (putStrLn "user")
 
-test_pollard n b a result= (pollardFunction n b a )==result
-test_pollard n b a result= (pollardFunction n b a )==result
+
+-- uuu n b res=do
+--     r <- randomRIO(2,n-2)
+--     -- print r
+--     let a=pollardFunction n b r
+--     -- print a
+--     -- print 1
+--     let variable1=if(a==0)
+--         then (pollard n b)
+--         else (res==a)
+--     return variable1
 
 
-testCCC_pollard n b result=do
-    r <- randomRIO(0,10)
+rezerva n b res=do
+    r <- randomRIO(2,n-2)
     -- print r
-
-    -- print $ pollard n b x
-    -- print  "input a valid value for the bound,or input NO if you want to use the default bound,that is 17" 
-    -- inputBound <- getLine 
-
-    -- let bound = if(inputBound=="NO" || inputBound=="no")
-    --     then 17
-    --     else (read inputBound :: Integer)
-    -- print $ pollard n bound x --euclidean b (euclidean n x)
-    -- print bound
-    -- if(print $ pollard n bound x)
-    --     then 1
-    -- print $ ( test_pollard (2^7-1) 17 r 0 )
-    -- let a= test_pollard (2^7-1) 17 r 0
+    let a=pollardFunction n b r
     -- print a
-    return $ test_pollard n b r result
-    -- return a
-    -- print $ (pollardFunction n 17 r)==result
+    -- print 1
+    if(a==0)
+        then (rezerva n b res)
+        else (print (a>res))
+    
 
 
-prop_200=test_pollard (2^7-1) 17 9 0
-prop_201=test_pollard (2^13-1) 17 17 0
-prop_202=test_pollard (2^17-1) 17 53 0
-prop_203=test_pollard (2^19-1) 17 61 0
-prop_204=test_pollard (2^31-1) 17 63 0
+-- length <$> getLine
+
+-- test_pollard n b =do
+--     a<-(pollard n b)
+--     c<-0
+--     if a == c then (return a) else (return a)
+
+
+-- test_pollard::Integer->Integer->monadIO mo
+-- test_pollard n b = do
+--     r <- randomRIO(2,n-2)
+--     return (pollard n r) -- (pollard n b) > 1 
+-- test_pollard n b = print ( (pollard n b) == 1 )
+-- test_pollard_with_iterations::Integer ->Integer ->Integer ->Integer ->Bool
+-- test_pollard_with_iterations n b iterations res= (gggg n b iterations) == res
+
+-- prop_factor n b iterations res= 
+--     assert ((gggg n b iterations) == res)
+
+-- haiimogen n b res=  (test_pollard n b) > res
+-- prop_factor n b res= (test_pollard n b) == res
+
+aici=length <$> getLine
+-- testFilesEqual = TestCase (do x <- readFile "a.txt"
+--                               y <- readFile "b.txt"
+--                               assertEqual "files not equal" x y)
+
+
+-- prop_200=test_pollard_with_iterations (2^7-1) 17 10 1
+
+-- pollard_with_iterations
+
+-- prop_200=test_pollard_with_iterations (2^7-1) 17 10 1
+-- prop_201=test_pollard_with_iterations (2^13-1) 17 10 0
+-- prop_202=test_pollard_with_iterations (2^17-1) 17 10 0
+-- prop_203=test_pollard_with_iterations (2^19-1) 17 20 0
+-- prop_204=test_pollard_with_iterations (2^31-1) 17 20 0
+-- prop_205=test_pollard_with_iterations (2^61-1) 17 20 0
+-- prop_206=test_pollard_with_iterations (2^89-1) 17 20 0
 
 -- prop_250=testCCC_pollard (2^31-1) 71 0 
 -- prop_251=testCCC_pollard (2^61-1) 73 0 
 
 
-return []
+-- return []
 
 
 
 
 
-mainTest = $(quickCheckAll)
+-- mainTest = quickCheck $ prop_factor (2^7-1) 17 10 1 -- $(quickCheckAll)
 
 
 -- main = quickCheck rsmeTest
