@@ -60,16 +60,19 @@ author: Tiutiu Natan-Gabriel,937
 I will implement an algorithm for finding prime factors using Pollard's p-1 Method.
 This algorithm is very efficient in finding any prime factor p for a given number n(composite),for 
 which p-1 has only small prime numbers. I also defined some functions for computing lcm for 2 numbers and also for a list of numbers.
-You can also find in my implementaion an algorithm for repeated squaring modular exponentiation (we will use rsme as a shortcut).
+You can also find an implementaion for repeated squaring modular exponentiation algorithm (we will use rsme as a shortcut).
 
 In order to generate the documentation written using markdown format , run **pandoc -t latex -o main.pdf main.nw** .
 
 In order to generate the source code file, run **notangle main.nw>main.hs** .
 
-Once you have the source code file,start the interpreter using command **ghci** ,then load the file using **:l main.hs** and finally run **getBasesWrapper YOURNUMBER** , for example **getBasesWrapper 1725** in order to find 
- all bases b with respect to which  the given YOURNUMBER is pseudoprime. Also you can run **getStrongPseudoprimeBasesWrapper YOURNUMBER** , for example **getStrongPseudoprimeBasesWrapper 65** in order to find 
- all bases b with respect to which  the given YOURNUMBER is strong pseudoprime.
+Once you have the source code file,start the interpreter using command **ghci** ,then load the file using **:l main.hs** and 
+finally run **pollard YOUR_NUMBER YOUR_BOUND** , for example **pollard 1725 7** in order to find 
+a non-trivial divisor of 1725. You can also run **pollardWithIterations YOUR_NUMBER YOUR_BOUND ITERATIONS_NUMBER**, if you want to see whether 
+the algorithm finds a non-trivial divisor in maximum ITERATIONS_NUMBER iterations.For example you can run **pollardWithIterations (2\^31-1) 19 10** . I recommand you
+to use this function just for testing that in case of prime numbers our algorithm doesn't find any non-trivial divisor in any number of steps.
 
+In the case you want to be asked whether you want to use the default bound or not, please take a look at functions **pollard_wrapper** and **pollard_with_iterations_wrapper**.
 
 # Repeated Squaring Modular Exponentiation & helper functions
 
@@ -296,7 +299,7 @@ computeLCMForAList (x:xs) result=
 ~~~~~
 
 
-The function  computeLCMForAListWrapper is a wrapper function. Using it,insted calling **computeLCMForAList l 1**,
+The function  computeLCMForAListWrapper is a wrapper function. Using it,insted of calling **computeLCMForAList l 1**,
 you just need to call **computeLCMForAList l** . It also handle the sitution in which the given list is emply(in this case it will return 1).
 
 ~~~~~{.haskell}
@@ -332,24 +335,23 @@ $b^{n-1}$ = 1 (mod n) (1)
 The situation d = n, in which case the algorithm fails, occurs
 with a negligible probability.
 
-In our implementation,as candidates for k,we will consider k = lcm{1, . . . , B}. 
+In our implementation,we will consider k = lcm{1, . . . , B}. 
 
 **Proof of corectness**
 
 
 We want to find a divisor of n.
-Consider that k is a multiple of p-1(otherwise the algorithm won't work),that is k=(p-1)\*q .
+Consider that k is a multiple of p-1,that is k=(p-1)\*q .
 *(As an observation,if k < bound,then k=(p-1)\*q is always true )*
 
 If p | a doesn't hold,then, $a^{k}$ = $a^{(p-1)*q}$ = 1 (mod p) ,because $a^{p-1}$ = 1 (mod p),using Fermat’s Little Theorem and of course $1^{q}$ = 1 (mod p). 
 
 So,we obtained $a^{k}$ = 1 (mod p) $\implies$ p | $a^{k}$ - 1 .
 
-Now, if p | n $\implies$ p | ($a^{k}$ - 1,n) . Even more, if n | $a^{p-1}$ doesn't hold, then d=($a^{k}$ - 1,n) is a non-trivial 
+Now, if p | n $\implies$ p | ($a^{k}$ - 1,n) . Moreover, if n | $a^{k}-1$ doesn't hold, then d=($a^{k}$ - 1,n) is a non-trivial 
 divisor of n.
 
-In conclusion, we can find any prime factor p of an composite odd n for which p-1 has only small primes
-(or, for which p-1 divides k=lcm{1, . . . , B} ,more precisely)
+In conclusion, we can find any prime factor p of an composite odd n for which p-1 has only small primes.
 
 
 **Important obeservation(borderline case)**
@@ -505,7 +507,9 @@ pollard_with_iterations_wrapper n iterations=do
 
 
 
-**Testing**
+# Testing
+
+First of all,for running all the tests,you just have to run **main**.
 
 I will test functions rsmeWrapper,computeLCMFor2Numbers,computeLCMForAListWrapper and the variants of pollard (pollard  and pollardWithIterations).
 For the first 3,I use the library *Test.QuickCheck.All*.
@@ -571,13 +575,13 @@ return []
 
 The next 2 functions  test_pollard and test_pollard_with_iterations are almost identical to 
 pollard  and pollardWithIterations functions : the ONLY difference is that test_pollard and test_pollard_with_iterations 
-print the result in the else a result in last branch and don't return a result as  pollard  and pollardWithIterations functions do.
+print the result in last branch ("else branch") and don't return a result as  pollard  and pollardWithIterations functions do.
 
-I did this because in haskell is very hard to work with functions that return an IO value(so,with pollard  and pollardWithIterations).The way I did it is a work-around:
+I did this because in haskell is very hard to work with functions that return an IO value(so,with pollard  and pollardWithIterations).The way I did is a work-around:
 I print the result in the same function(test_pollard and test_pollard_with_iterations) I introduce a IO value (the randomly generated value r).
 
 The function test_pollard returns True if it finished(that is,it found a non-trivial divisor).
-In order to finsh,it will have to enter the "else" branch $\implies$ a will be greater than 0,so (a>0) will be evaluated to True.
+In order to finsh,it will have to enter the "else" branch $\implies$ "a" will be greater than 0,so (a>0) will be evaluated to True.
 
 
 The function test_pollard_with_iterations returns True  if after the number of iterations specified,a will be 0(i.e. it didn't find any non-trivial divisor).
@@ -646,10 +650,6 @@ main=do
     (test_pollard (2^85329-1) 17 )
     print "(test_pollard (2^133562-1) 17 ) evaluates as:" 
     (test_pollard (2^133562-1) 17 )
-    print "(test_pollard (2^859301-1) 17 ) evaluates as:" 
-    (test_pollard (2^859301-1) 17 )
-    print "(test_pollard (2^1000025-1) 17 ) evaluates as:" 
-    (test_pollard (2^1000025-1) 17 )
 
     --here I use numbers of the form 2^n-1 which are not Mersenne numbers
     --here we will test that these nubmers CAN NOT be decomposed in a number of given iterations
@@ -689,6 +689,22 @@ import Test.QuickCheck.All
 import System.Random
 import Data.Bits
 
+<<generateBinary>>
+<<reverseList>>
+<<rsme>>
+<<forLoopRsme>>
+<<rsmeWrapper>>
+<<euclidean>>
+<<computeLCMFor2Numbers>>
+<<computeLCMForAList>>
+<<computeLCMForAListWrapper>>
+<<pollardFunction>>
+<<pollard>>
+<<pollard_wrapper>>
+<<pollardWithIterations>>
+<<pollard_with_iterations_wrapper>>
+<<quickCheckTests>>
+<<pollardTests>>
 
 @
 ~~~~~
