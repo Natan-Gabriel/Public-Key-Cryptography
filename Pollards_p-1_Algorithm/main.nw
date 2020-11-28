@@ -309,14 +309,27 @@ an FAILURE for each iteration of our algorithm $\implies$ we will have an infini
 
 **Algorithms**
 
+The pollardFunction is a function  that implements the algorithm for Pollard's p-1 Method. This is the algorithm:
 
+Input: an odd composite number n, and a bound B
 
+Output: a non-trivial factor d of n
 
+Algorithm:
 
+1.Let k=lcm{1,..,B} or k=$\Pi$ {$q^{i}$ | q prime,i is a non-zero natural number, $q^{i} le B $ }
+
+2.Randomly choose 1 <a  < n-1.
+
+3.a=$a^{k}$ mod n.
+
+4.d= (a-1,n)
+
+5.If d=1 or d=n then output FAILURE(we output 0),else output d.
+            
 
 ~~~~~{.haskell}
 <<pollardFunction>>=
--- pollardFunction :: Integer-> Integer->Integer->Integer
 pollardFunction n b a = do
     let k=computeLCMForAListWrapper [x | x <- [1..b]]
     let aa=(rsmeWrapper a k n)
@@ -327,80 +340,107 @@ pollardFunction n b a = do
 @
 ~~~~~
 
+*Remark* 
+
+If the algorithm ends with a failure, it is repeated for
+another value 1 < a < n − 1 or for another bound B.(we use another value a,because we should obey to the 
+bound given by the user,if any).
+
+That's what pollard does. At each iteration,we get the result of calling pollardFunction.
+As long as result is FALURE (that is,0), we recursively  call pollard .
+
+Input: an odd composite number n, and a bound B
+
+Output: a non-trivial factor d of n
+
+
+Algorithm:
+
+1.Generate a random number r,such that 	$ 2 \le r $
+
+2.Compute a=pollardFunction(n,b,r)
+
+3.If a=0 then call pollard(n,b),else return a.
+  
+
 
 ~~~~~{.haskell}
 <<pollard>>=
 pollard n b=do
-    r <- randomRIO(0,10)
+    r <- randomRIO(2,n-2)
+    let a=pollardFunction n b r
+    if(a==0)
+        then (pollard n b)
+        else (return a)
+@
+~~~~~
+
+
+The function  pollard_wrapper just let the user to choose  whether he wants or not to use the default bound.
+After it gets the bound,pollard_wrapper returns the result of pollard(n,bound).
+
+~~~~~{.haskell}
+<<pollard_wrapper>>=
+pollard_wrapper n=do
     print  "input a valid value for the bound,or input NO if you want to use the default bound,that is 17" 
     inputBound <- getLine 
+
     let bound = if(inputBound=="NO" || inputBound=="no")
         then 17
         else (read inputBound :: Integer)
-    print $ pollardFunction n bound r
+    return $ pollard n bound
 @
 ~~~~~
+
+
+This function is very similar to the pollard .The only difference is that this function 
+allows you to set a maximum number of iterations. I will use this function in testing section,where
+I will test that a Mersennne number cannot be decomoposed in a given number of iterations.
+
+Input: an odd  number n,  a bound B, a maximum number of iterations to be performed
+
+Output: a non-trivial factor d of n,or FALURE(that is,we return 0)
+
+
+Algorithm:
+
+1.Generate a random number r,such that 	$ 2 \le r $
+
+2.Compute a=pollardFunction(n,b,r)
+
+3.If a=0 and iterations>0,then call pollardWithIterations(n,b,iterations-1),else return a.
+  
+
+~~~~~{.haskell}
+<<pollardWithIterations>>=
+pollardWithIterations n b iterations=do
+    r <- randomRIO(2,n-2)
+    let a=pollardFunction n b r
+    if((a==0) && (iterations>0))
+        then (pollardWithIterations n b (iterations-1))
+        else (return a)
+@
+~~~~~
+
+The function  pollard_with_iterations_wrapper just let the user to choose whether he wants or not to use the default bound.
+After it gets the bound,pollard_with_iterations_wrapper returns the result of pollardWithIterations(n,bound,iterations).
+
 
 
 ~~~~~{.haskell}
-<<rop_random>>=
-rop_random :: Integer-> Integer -> Integer -> Bool
-rop_random b k n = (rsmeWrapper b k n) > (getMod b k n)
+<<pollard_with_iterations_wrapper>>=
+pollard_with_iterations_wrapper n iterations=do
+    print  "input a valid value for the bound,or input NO if you want to use the default bound,that is 17" 
+    inputBound <- getLine 
+
+    let bound = if(inputBound=="NO" || inputBound=="no")
+        then 17
+        else (read inputBound :: Integer)
+    return $ pollardWithIterations n bound iterations
 @
 ~~~~~
 
 
--- revapp :: Int -> Int -> Int -> Bool
--- revapp b k n = (rsmeWrapper b k n) == (getMod b k n)
-
-
--- simpleMathTests :: TestTree
--- simpleMathTests = testGroup "Simple Math Tests"
---   [ testCase "Small Numbers" .
---       revapp 3 4 5 @?= 1
---   ]
-
--- elements :: [a] -> Gen a
-
--- generate=  
-
--- prop_1=revapp 15 12 37
--- prop_2=revapp 22 11 45
--- prop_3=revapp 12 87 34
--- prop_4=revapp 3 16 7
--- prop_5=revapp 90 6 7
--- prop_6=revapp 34 5 7
--- prop_7=revapp 34 51 74
--- prop_8=revapp 23 45 2
--- prop_9=revapp 0 0 0
--- prop_10=revapp 1 0 0
--- prop_11=revapp 0 1 0
--- -- prop_12=revapp 0 0 1
-
-test_lcm a b c =(computeLCMFor2Numbers a b)==c
-test_lcmForList l c =(computeLCMForAListWrapper l)==c
-
-prop_101=test_lcm 8 12 (lcm 8 12)
-prop_102=test_lcm 26 165 (lcm 26 165)
-prop_103=test_lcm 135 205 (lcm 135 205)
-
-prop_151=test_lcmForList [165,205,310] (lcm 165 (lcm 205 310))
-prop_152=test_lcmForList [132,162,90] (lcm 132 (lcm 162 90))
-prop_153=test_lcmForList [192,101,7] (lcm 192 (lcm 101 7))
-prop_154=test_lcmForList [72,245,90,83] (lcm 72 (lcm 245 (lcm 90 83)))
-
-
-
-return []
-
-
-
-
-
-mainasdfg = $(quickCheckAll)
-
-
--- main = quickCheck revapp
 
 
 ~~~~~{.haskell}

@@ -1,13 +1,8 @@
 {-# LANGUAGE TemplateHaskell #-}
 import Test.QuickCheck
 import Test.QuickCheck.All
-import Test.QuickCheck.Monadic
-import Test.QuickCheck.Property
 import System.Random
-import Data.Time
 import Data.Bits
-import Control.Monad.IO.Class
-
 
 -- Function generateBinary transforms a decimal number into a binary number.
 -- This is the mathematical model:
@@ -133,6 +128,7 @@ rsmeWrapper b k n=rsme b k n (reverseList (generateBinary [] k))
 
 
 
+
 getMod b k n=
     if (n==0)
         then 0
@@ -177,22 +173,6 @@ pollardFunction n b a = do
 
 
 
--- pollard n=do
---     r <- randomRIO(2,n-2)
---     -- print r
-
---     -- print $ pollard n b x
---     print  "input a valid value for the bound,or input NO if you want to use the default bound,that is 17" 
---     inputBound <- getLine 
-
---     let bound = if(inputBound=="NO" || inputBound=="no")
---         then 17
---         else (read inputBound :: Integer)
---     -- print $ pollard n bound x --euclidean b (euclidean n x)
---     -- print bound
---     return $ pollardFunction n bound r
-
-
 pollard_wrapper n=do
     print  "input a valid value for the bound,or input NO if you want to use the default bound,that is 17" 
     inputBound <- getLine 
@@ -205,14 +185,10 @@ pollard_wrapper n=do
 
 pollard n b=do
     r <- randomRIO(2,n-2)
-    -- print r
     let a=pollardFunction n b r
-    -- print a
-    -- print 1
     if(a==0)
         then (pollard n b)
         else (return a)
-    -- print 1
 
 
 pollard_with_iterations_wrapper n iterations=do
@@ -226,33 +202,24 @@ pollard_with_iterations_wrapper n iterations=do
 
 pollardWithIterations n b iterations=do
     r <- randomRIO(2,n-2)
-    -- print r
     let a=pollardFunction n b r
-    -- print a
-    -- print 1
     if((a==0) && (iterations>0))
         then (pollardWithIterations n b (iterations-1))
         else (return a)
--- -- gggg::Integer-> Integer  -> Integer->m0 Integer
--- gggg n b iterations=( pollardWithIterations n b iterations)
 
--- gggg::Integer-> Integer  -> Integer->m0 Integer
--- gggg n b =(eq ( pollard n b) 1)
-
--- rop_random :: Integer-> Integer -> Integer -> Bool
--- rop_random b k n = (rsmeWrapper b k n) == (getMod b k n)
 
 -- rsmeTest :: Int -> Int -> Int -> Bool
 rsmeTest b k n = (rsmeWrapper b k n) == (getMod b k n)
+
 
 prop_1=rsmeTest 15 12 37
 prop_2=rsmeTest 22 11 45
 prop_3=rsmeTest 12 87 34
 prop_4=rsmeTest 3 16 7
-prop_5=rsmeTest 90 6 7
-prop_6=rsmeTest 34 5 7
-prop_7=rsmeTest 34 51 74
-prop_8=rsmeTest 23 45 2
+prop_5=rsmeTest 9034 623 11
+prop_6=rsmeTest (5^7) (2^7) 13
+prop_7=rsmeTest ((2^7)*(11^3)) (3^3) 74
+prop_8=rsmeTest ((11^7)*(17^4)) (23^2) 153
 
 
 
@@ -260,63 +227,24 @@ test_lcm a b c =(computeLCMFor2Numbers a b)==c
 test_lcmForList l c =(computeLCMForAListWrapper l)==c
 
 prop_101=test_lcm 8 12 (lcm 8 12)
-prop_102=test_lcm 26 165 (lcm 26 165)
-prop_103=test_lcm 135 205 (lcm 135 205)
+prop_102=test_lcm 264 165 (lcm 264 165)
+prop_103=test_lcm 2451 4253 (lcm 2451 4253)
+prop_104=test_lcm 75364 254634 (lcm 75364 254634)
+prop_105=test_lcm 9645124 5462343 (lcm 9645124 5462343)
 
 prop_151=test_lcmForList [165,205,310] (lcm 165 (lcm 205 310))
 prop_152=test_lcmForList [132,162,90] (lcm 132 (lcm 162 90))
-prop_153=test_lcmForList [192,101,7] (lcm 192 (lcm 101 7))
-prop_154=test_lcmForList [72,245,90,83] (lcm 72 (lcm 245 (lcm 90 83)))
-
--- poateamu :: IO ()
--- poateamu = do
---   a <- getStdRandom $ randomR (0, 1 :: Int)
---   b <- (pollard 7 8) 
---   if a == b then (putStrLn "user") else (putStrLn "user")
+prop_153=test_lcmForList [342547,44253,1423] (lcm 342547 (lcm 44253 1423))
+prop_154=test_lcmForList [41243499,775353,5464657,875624] (lcm 41243499 (lcm 775353 (lcm 5464657 875624)))
+prop_155=test_lcmForList [((2^3)*(5^7)*(7^2)),((2^9)*(5^3)*(7^3)),((5^7)*(7^10)*(9^2)),((7^2)*(11^2))] (lcm ((2^3)*(5^7)*(7^2)) (lcm ((2^9)*(5^3)*(7^3)) (lcm ((5^7)*(7^10)*(9^2)) ((7^2)*(11^2)))))
 
 
--- uuu n b res=do
---     r <- randomRIO(2,n-2)
---     -- print r
---     let a=pollardFunction n b r
---     -- print a
---     -- print 1
---     let variable1=if(a==0)
---         then (pollard n b)
---         else (res==a)
---     return variable1
-
-
-rezerva n b res=do
-    r <- randomRIO(2,n-2)
-    -- print r
-    let a=pollardFunction n b r
-    -- print a
-    -- print 1
-    if(a==0)
-        then (rezerva n b res)
-        else (print (a>res))
-
-
-
-
-
-
-
--- length <$> getLine
-
--- test_pollard n b =do
---     a<-(pollard n b)
---     c<-0
---     if a == c then (return a) else (return a)
+return []
 
 
 test_pollard n b=do
     r <- randomRIO(2,n-2)
-    -- print r
     let a=pollardFunction n b r
-    -- print a
-    -- print 1
     if(a==0)
         then (test_pollard n b)
         else (print (a>0))
@@ -324,122 +252,60 @@ test_pollard n b=do
 
 test_pollard_with_iterations n b iterations=do
     r <- randomRIO(2,n-2)
-    -- print r
     let a=pollardFunction n b r
-    -- print a
-    -- print 1
     if((a==0) && (iterations>0))
         then (test_pollard_with_iterations n b (iterations-1))
         else (print (a==0))
 
-    -- if((a==0))
-    --     then do
-    --         if((iterations>0))
-    --             then (test_pollard_with_iterations n b (iterations-1))
-    --             else 0
-    --     else (return a)
-
--- test_pollard::Integer->Integer->monadIO mo
--- test_pollard n b = do
---     r <- randomRIO(2,n-2)
---     return (pollard n r) -- (pollard n b) > 1 
--- test_pollard n b = print ( (pollard n b) == 1 )
--- test_pollard_with_iterations::Integer ->Integer ->Integer ->Integer ->Bool
--- test_pollard_with_iterations n b iterations res= (gggg n b iterations) == res
-
--- prop_factor n b iterations res= 
---     assert ((gggg n b iterations) == res)
-
-
--- testFilesEqual = TestCase (do x <- readFile "a.txt"
---                               y <- readFile "b.txt"
---                               assertEqual "files not equal" x y)
-
-
--- prop_200=test_pollard_with_iterations (2^7-1) 17 10 1
-
--- pollard_with_iterations
-
--- rezerva1 n b res=do
---     r <- randomRIO(2,n-2)
---     -- print r
---     let a=pollardFunction n b r
---     -- print a
---     -- print 1
---     if(a==0)
---         then (rezerva1 n b res)
---         else (return (a>res))
-    -- print aa
--- prop301=(rezerva1 10 15 0)
--- prop302=assert (rezerva1 10 15 0) True
--- prop303=assert "True is True!" True
-
--- prop_200=test_pollard_with_iterations (2^7-1) 17 10 1
--- prop_201=test_pollard_with_iterations (2^13-1) 17 10 0
--- prop_202=test_pollard_with_iterations (2^17-1) 17 10 0
--- prop_203=test_pollard_with_iterations (2^19-1) 17 20 0
--- prop_204=test_pollard_with_iterations (2^31-1) 17 20 0
--- prop_205=test_pollard_with_iterations (2^61-1) 17 20 0
--- prop_206=test_pollard_with_iterations (2^89-1) 17 20 0
-
--- prop_250=testCCC_pollard (2^31-1) 71 0 
--- prop_251=testCCC_pollard (2^61-1) 73 0 
-
-
-
-
--- mainTest = quickCheck $ prop_factor (2^7-1) 17 10 1 -- $(quickCheckAll)
-
--- main = quickCheck $ assert True True --prop303
--- main = $(quickCheckAll)
-
 main=do
-    -- print "(test_pollard 15 5) evaluates as:" 
-    -- (test_pollard 15 5)
-    -- print "(test_pollard (7*13) 8) evaluates as:" 
-    -- (test_pollard (7*13) 8)
-    -- print "(test_pollard ((2^5)*(3^3)) 3) evaluates as:" 
-    -- (test_pollard ((2^5)*(3^3))  3)
-    -- print "(test_pollard ((2^6)*(3^7)*(5^5)) 5) evaluates as:" 
-    -- (test_pollard ((2^6)*(3^7)*(5^5)) 5)
-    -- print "(test_pollard ((3^7)*(5^5)*(7^3)) 7) evaluates as:" 
-    -- (test_pollard ((3^7)*(5^5)*(7^3)) 7)
-    -- print "(test_pollard ((11^3)*(13^5)) 13 ) evaluates as:" 
-    -- (test_pollard ((11^3)*(13^5)) 13 )
-    -- print "(test_pollard ((2^4)*11*(17^5)) 17 ) evaluates as:" 
-    -- (test_pollard ((2^4)*11*(17^5)) 17 )
+    $(quickCheckAll)
+
+    print "(test_pollard 15 5) evaluates as:" 
+    (test_pollard 15 5)
+    print "(test_pollard (7*13) 8) evaluates as:" 
+    (test_pollard (7*13) 8)
+    print "(test_pollard ((2^5)*(3^3)) 3) evaluates as:" 
+    (test_pollard ((2^5)*(3^3))  3)
+    print "(test_pollard ((2^6)*(3^7)*(5^5)) 5) evaluates as:" 
+    (test_pollard ((2^6)*(3^7)*(5^5)) 5)
+    print "(test_pollard ((3^7)*(5^5)*(7^3)) 7) evaluates as:" 
+    (test_pollard ((3^7)*(5^5)*(7^3)) 7)
+    print "(test_pollard ((11^3)*(13^5)) 13 ) evaluates as:" 
+    (test_pollard ((11^3)*(13^5)) 13 )
+    print "(test_pollard ((2^4)*11*(17^5)) 17 ) evaluates as:" 
+    (test_pollard ((2^4)*11*(17^5)) 17 )
 
     -- --here I use numbers of the form 2^n-1 which are not Mersenne numbers
     -- --we will test that these nubmers CAN be decomposed
 
-    -- print "(test_pollard (2^15-1) 13 ) evaluates as:" 
-    -- (test_pollard (2^15-1) 13 )
-    -- print "(test_pollard (2^18-1) 17 ) evaluates as:" 
-    -- (test_pollard (2^18-1) 17 )
-    -- print "(test_pollard (2^22-1) 17 ) evaluates as:" 
-    -- (test_pollard (2^22-1) 17 )
-    -- print "(test_pollard (2^25-1) 17 ) evaluates as:" 
-    -- (test_pollard (2^25-1) 17 )
-    -- print "(test_pollard (2^50-1) 17 ) evaluates as:" 
-    -- (test_pollard (2^50-1) 17 )
-    -- print "(test_pollard (2^60-1) 17 ) evaluates as:" 
-    -- (test_pollard (2^60-1) 17 )
-    -- print "(test_pollard (2^70-1) 17 ) evaluates as:" 
-    -- (test_pollard (2^70-1) 17 )
-    -- print "(test_pollard (2^100-1) 17 ) evaluates as:" 
-    -- (test_pollard (2^100-1) 17 )
-    -- print "(test_pollard (2^1231-1) 17 ) evaluates as:" 
-    -- (test_pollard (2^1231-1) 17 )
-    -- print "(test_pollard (2^4250-1) 17 ) evaluates as:" 
-    -- (test_pollard (2^4250-1) 17 )
-    -- print "(test_pollard (2^85329-1) 17 ) evaluates as:" 
-    -- (test_pollard (2^85329-1) 17 )
-    -- print "(test_pollard (2^133562-1) 17 ) evaluates as:" 
-    -- (test_pollard (2^133562-1) 17 )
-    -- print "(test_pollard (2^859301-1) 17 ) evaluates as:" 
-    -- (test_pollard (2^859301-1) 17 )
-    -- print "(test_pollard (2^1000025-1) 17 ) evaluates as:" 
-    -- (test_pollard (2^1000025-1) 17 )
+    print "(test_pollard (2^15-1) 13 ) evaluates as:" 
+    (test_pollard (2^15-1) 13 )
+    print "(test_pollard (2^18-1) 17 ) evaluates as:" 
+    (test_pollard (2^18-1) 17 )
+    print "(test_pollard (2^22-1) 17 ) evaluates as:" 
+    (test_pollard (2^22-1) 17 )
+    print "(test_pollard (2^25-1) 17 ) evaluates as:" 
+    (test_pollard (2^25-1) 17 )
+    print "(test_pollard (2^50-1) 17 ) evaluates as:" 
+    (test_pollard (2^50-1) 17 )
+    print "(test_pollard (2^60-1) 17 ) evaluates as:" 
+    (test_pollard (2^60-1) 17 )
+    print "(test_pollard (2^70-1) 17 ) evaluates as:" 
+    (test_pollard (2^70-1) 17 )
+    print "(test_pollard (2^100-1) 17 ) evaluates as:" 
+    (test_pollard (2^100-1) 17 )
+    print "(test_pollard (2^1231-1) 17 ) evaluates as:" 
+    (test_pollard (2^1231-1) 17 )
+    print "(test_pollard (2^4250-1) 17 ) evaluates as:" 
+    (test_pollard (2^4250-1) 17 )
+    print "(test_pollard (2^85329-1) 17 ) evaluates as:" 
+    (test_pollard (2^85329-1) 17 )
+    print "(test_pollard (2^133562-1) 17 ) evaluates as:" 
+    (test_pollard (2^133562-1) 17 )
+    print "(test_pollard (2^859301-1) 17 ) evaluates as:" 
+    (test_pollard (2^859301-1) 17 )
+    print "(test_pollard (2^1000025-1) 17 ) evaluates as:" 
+    (test_pollard (2^1000025-1) 17 )
 
     --here I use numbers of the form 2^n-1 which are not Mersenne numbers
     --here we will test that these nubmers CAN NOT be decomposed in a number of given iterations
@@ -455,15 +321,15 @@ main=do
     print "(test_pollard_with_iterations (2^61-1) 10 10) evaluates as:" 
     (test_pollard_with_iterations (2^61-1) 10 10)
     print "(test_pollard_with_iterations (2^127-1) 10 10) evaluates as:" 
-    (test_pollard_with_iterations (2^127-1) 10 10)
+    (test_pollard_with_iterations (2^127-1) 10 20)
     print "(test_pollard_with_iterations (2^521-1) 10 10) evaluates as:" 
-    (test_pollard_with_iterations (2^521-1) 10 10)
+    (test_pollard_with_iterations (2^521-1) 10 20)
     print "(test_pollard_with_iterations (2^2203-1) 10 10) evaluates as:" 
-    (test_pollard_with_iterations (2^2203-1) 10 10)
+    (test_pollard_with_iterations (2^2203-1) 10 20)
     print "(test_pollard_with_iterations (2^21701-1) 10 10) evaluates as:" 
     (test_pollard_with_iterations (2^21701-1) 10 30)
     print "(test_pollard_with_iterations (2^110503-1) 10 10) evaluates as:" 
-    (test_pollard_with_iterations (2^110503-1) 10 30)
+    (test_pollard_with_iterations (2^110503-1) 10 40)
     print "(test_pollard_with_iterations (2^216091-1) 10 10) evaluates as:" 
-    (test_pollard_with_iterations (2^216091-1) 10 30)
+    (test_pollard_with_iterations (2^216091-1) 10 40)
 
