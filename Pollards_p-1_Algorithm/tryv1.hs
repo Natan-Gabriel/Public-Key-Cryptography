@@ -265,15 +265,15 @@ main=do
     print "(test_pollard (7*13) 8) evaluates as:" 
     (test_pollard (7*13) 8)
     print "(test_pollard ((2^5)*(3^3)) 3) evaluates as:" 
-    (test_pollard ((2^5)*(3^3))  3)
+    (test_pollard ((3^5)*(5^3))  3)
     print "(test_pollard ((2^6)*(3^7)*(5^5)) 5) evaluates as:" 
-    (test_pollard ((2^6)*(3^7)*(5^5)) 5)
+    (test_pollard ((3^6)*(7^7)*(5^5)) 5)
     print "(test_pollard ((3^7)*(5^5)*(7^3)) 7) evaluates as:" 
     (test_pollard ((3^7)*(5^5)*(7^3)) 7)
     print "(test_pollard ((11^3)*(13^5)) 13 ) evaluates as:" 
     (test_pollard ((11^3)*(13^5)) 13 )
     print "(test_pollard ((2^4)*11*(17^5)) 17 ) evaluates as:" 
-    (test_pollard ((2^4)*11*(17^5)) 17 )
+    (test_pollard ((7^4)*11*(17^5)) 17 )
 
     -- --here I use numbers of the form 2^n-1 which are not Mersenne numbers
     -- --we will test that these nubmers CAN be decomposed

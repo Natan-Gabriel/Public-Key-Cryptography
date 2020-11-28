@@ -71,6 +71,7 @@ Once you have the source code file,start the interpreter using command **ghci** 
  all bases b with respect to which  the given YOURNUMBER is strong pseudoprime.
 
 
+# Repeated Squaring Modular Exponentiation & helper functions
 
 Function generateBinary transforms a decimal number into a binary number.
 This is the mathematical model:
@@ -201,17 +202,43 @@ rsmeWrapper b k n=rsme b k n (reverseList (generateBinary [] k))
 
 
 
-~~~~~{.haskell}
-<<getMod>>=
-getMod b k n=
-    if (n==0)
-        then 0
-    else
-        if (k==0) --this also trats the case 0^0
-            then 1
-        else (mod (b^k) n)
-@
-~~~~~
+# Euclidean algorithm
+
+Description:
+
+As long as b,which is the second element is not equal to 0,we will call
+recursively euclidean(b,a%b) .We can observe that always second
+element becomes the first element in the new recursive call.If we would not
+inverse the position of the elements,we would get stuck(in some cases).
+
+Ex.:a =1000,b=100 euclidean(1000,100)= euclidean(1000,100)= ...= euclidean(1000,100)= ....
+
+Here is the mathematical model:
+
+$$
+ euclidean(a,b)= \begin{cases} euclidean(b,a\%b), if b>0 \\ a,else  \end{cases}
+$$
+
+The proof of corectness is based on the following lemma:
+
+*If a=c(mod b) (1), then (a,b)=(c,b)  (3)*
+
+
+Proof of this lemma:
+
+From (1) we have b|a-c,so there is a y such that by=a-c.If there is
+a d such that d divides a and b ,then it will also divide c=a-by.
+=>any divisor of a and b is a divisor of c and b. (2)
+Suppose (a,b)=x and (c,b)=y.Using (2) we have that x|y and y|x ,so we
+have that (a,b)=(c,b).
+
+For our problem we use this:
+
+We have a=a%b(mod b) =>using lemma (3)  we have that (a,b)=(a%b,b)
+
+
+
+
 
 ~~~~~{.haskell}
 <<euclidean>>=
@@ -224,14 +251,39 @@ euclidean a b =
 ~~~~~
 
 
-The above relation only holds for two numbers,
-The idea here is to extend our relation for more than 2 numbers
+
+# Lowest Common Multiple (lcm)
+
+**Observation**
+
+We have the following relation:
+
+\begin{center}
+   a * b = lcm(a, b) * gcd (a, b)
+\end{center}
+
+If we apply this relation to our program,we obtain the following relation:
+
+\begin{center}
+   computeLCMFor2Numbers(a, b) = $\frac{a*b}{euclidean (a, b)}$  
+\end{center}
+
+The above relation only holds for two numbers.
+For computing lcm of a list we will define the function computeLCMForAList.
 
 ~~~~~{.haskell}
 <<computeLCMFor2Numbers>>=
 computeLCMFor2Numbers a b= (quot (a*b) (euclidean a b) )
 @
 ~~~~~
+
+The function computeLCMForAList computes the lcm of a list.This is the mathematical model:
+
+computeLCMForAList(l1,l2..lm;result)=
+$$
+  \begin{cases} computeLCMFor2Numbers(l1,result), if\ m=1 \\ 
+ computeLCMForAList(l2..lm;computeLCMFor2Numbers(l1,result)),else  \end{cases}
+$$
 
 
 ~~~~~{.haskell}
@@ -243,6 +295,10 @@ computeLCMForAList (x:xs) result=
 @
 ~~~~~
 
+
+The function  computeLCMForAListWrapper is a wrapper function. Using it,insted calling **computeLCMForAList l 1**,
+you just need to call **computeLCMForAList l** . It also handle the sitution in which the given list is emply(in this case it will return 1).
+
 ~~~~~{.haskell}
 <<computeLCMForAListWrapper>>=
 computeLCMForAListWrapper l=
@@ -251,6 +307,9 @@ computeLCMForAListWrapper l=
     else (computeLCMForAList l 1)
 @
 ~~~~~
+
+
+
 
 # Pollard's p-1 {#pollard}
 
@@ -309,24 +368,24 @@ an FAILURE for each iteration of our algorithm $\implies$ we will have an infini
 
 **Algorithms**
 
-The pollardFunction is a function  that implements the algorithm for Pollard's p-1 Method. This is the algorithm:
+The function pollardFunction implements the algorithm for Pollard's p-1 Method. This is the algorithm:
 
 Input: an odd composite number n, and a bound B
 
 Output: a non-trivial factor d of n
 
-Algorithm:
 
-1.Let k=lcm{1,..,B} or k=$\Pi$ {$q^{i}$ | q prime,i is a non-zero natural number, $q^{i} le B $ }
+1.Let k=lcm{1,..,B} or k=$\Pi$ {$q^{i}$ | q prime,i is a non-zero natural number, $q^{i} \le B$ }
 
-2.Randomly choose 1 <a  < n-1.
+2.Randomly choose $1 < a  < n-1$.
 
 3.a=$a^{k}$ mod n.
 
 4.d= (a-1,n)
 
 5.If d=1 or d=n then output FAILURE(we output 0),else output d.
-            
+
+And this is the implementaion:          
 
 ~~~~~{.haskell}
 <<pollardFunction>>=
@@ -343,7 +402,7 @@ pollardFunction n b a = do
 *Remark* 
 
 If the algorithm ends with a failure, it is repeated for
-another value 1 < a < n − 1 or for another bound B.(we use another value a,because we should obey to the 
+another value $1 < a < n-1$  or for another bound B. (we use another value a,because we should use the 
 bound given by the user,if any).
 
 That's what pollard does. At each iteration,we get the result of calling pollardFunction.
@@ -356,7 +415,7 @@ Output: a non-trivial factor d of n
 
 Algorithm:
 
-1.Generate a random number r,such that 	$ 2 \le r $
+1.Generate a random number r,such that 	$2 \le r \le n-2$
 
 2.Compute a=pollardFunction(n,b,r)
 
@@ -375,6 +434,7 @@ pollard n b=do
 @
 ~~~~~
 
+First of all,if you are not interested in using the default value for the bound (that is 17),you can SKIP the next function.
 
 The function  pollard_wrapper just let the user to choose  whether he wants or not to use the default bound.
 After it gets the bound,pollard_wrapper returns the result of pollard(n,bound).
@@ -393,7 +453,7 @@ pollard_wrapper n=do
 ~~~~~
 
 
-This function is very similar to the pollard .The only difference is that this function 
+The next function (pollardWithIterations) is very similar to pollard .The only difference is that this function 
 allows you to set a maximum number of iterations. I will use this function in testing section,where
 I will test that a Mersennne number cannot be decomoposed in a given number of iterations.
 
@@ -404,7 +464,7 @@ Output: a non-trivial factor d of n,or FALURE(that is,we return 0)
 
 Algorithm:
 
-1.Generate a random number r,such that 	$ 2 \le r $
+1.Generate a random number r,such that $2 \le r \le n-2$
 
 2.Compute a=pollardFunction(n,b,r)
 
@@ -421,6 +481,9 @@ pollardWithIterations n b iterations=do
         else (return a)
 @
 ~~~~~
+
+First of all,if you are not interested in using the default value for the bound (that is 17),you can SKIP the next function.
+
 
 The function  pollard_with_iterations_wrapper just let the user to choose whether he wants or not to use the default bound.
 After it gets the bound,pollard_with_iterations_wrapper returns the result of pollardWithIterations(n,bound,iterations).
@@ -442,14 +505,189 @@ pollard_with_iterations_wrapper n iterations=do
 
 
 
+**Testing**
+
+I will test functions rsmeWrapper,computeLCMFor2Numbers,computeLCMForAListWrapper and the variants of pollard (pollard  and pollardWithIterations).
+For the first 3,I use the library *Test.QuickCheck.All*.
+Using this library,I test all properties in the current module, using Template Haskell. 
+This is the reason why you see {-# LANGUAGE TemplateHaskell #-} pragma at the top of root chunk.
+ 
+The name of the properties must begin with prop_ .
+
+Returns True if all tests succeeded, False otherwise.
+
+You can also see that I added the following statements to my program: "return []" after properties and  "$quickCheckAll" in main function.
+
+If you are interested to find more about *Test.QuickCheck.All*,please visit **https://hackage.haskell.org/package/QuickCheck-2.13.2/docs/Test-QuickCheck-All.html**
+
+
+For the last 2 I simply use prints.If the printed result is True,then everything was fine.
+
+
+The function rsmeTest tests if rsme(repeated squaring modular exponentiation) function works as expected.
+
+The functions test_lcm and test_lcmForList test if functions
+computeLCMFor2Numbers and computeLCMForAListWrapper work as expected.
+The last parameter for each function represent the expected result. We will compute 
+the expected results using the pre-defined function lcm.(see below)   
 
 ~~~~~{.haskell}
+<<quickCheckTests>>=
+-- rsmeTest :: Int -> Int -> Int -> Bool
+rsmeTest b k n = (rsmeWrapper b k n) == (mod (b^k) n)
+
+
+prop_1=rsmeTest 15 12 37
+prop_2=rsmeTest 22 11 45
+prop_3=rsmeTest 12 87 34
+prop_4=rsmeTest 3 16 7
+prop_5=rsmeTest 9034 623 11
+prop_6=rsmeTest (5^7) (2^7) 13
+prop_7=rsmeTest ((2^7)*(11^3)) (3^3) 74
+prop_8=rsmeTest ((11^7)*(17^4)) (23^2) 153
+
+
+
+test_lcm a b c =(computeLCMFor2Numbers a b)==c
+test_lcmForList l c =(computeLCMForAListWrapper l)==c
+
+prop_101=test_lcm 8 12 (lcm 8 12)
+prop_102=test_lcm 264 165 (lcm 264 165)
+prop_103=test_lcm 2451 4253 (lcm 2451 4253)
+prop_104=test_lcm 75364 254634 (lcm 75364 254634)
+prop_105=test_lcm 9645124 5462343 (lcm 9645124 5462343)
+
+prop_151=test_lcmForList [165,205,310] (lcm 165 (lcm 205 310))
+prop_152=test_lcmForList [132,162,90] (lcm 132 (lcm 162 90))
+prop_153=test_lcmForList [342547,44253,1423] (lcm 342547 (lcm 44253 1423))
+prop_154=test_lcmForList [41243499,775353,5464657,875624] (lcm 41243499 (lcm 775353 (lcm 5464657 875624)))
+prop_155=test_lcmForList [((2^3)*(5^7)*(7^2)),((2^9)*(5^3)*(7^3)),((5^7)*(7^10)*(9^2)),((7^2)*(11^2))] (lcm ((2^3)*(5^7)*(7^2)) (lcm ((2^9)*(5^3)*(7^3)) (lcm ((5^7)*(7^10)*(9^2)) ((7^2)*(11^2)))))
+
+
+return []
+@
+~~~~~
+
+
+The next 2 functions  test_pollard and test_pollard_with_iterations are almost identical to 
+pollard  and pollardWithIterations functions : the ONLY difference is that test_pollard and test_pollard_with_iterations 
+print the result in the else a result in last branch and don't return a result as  pollard  and pollardWithIterations functions do.
+
+I did this because in haskell is very hard to work with functions that return an IO value(so,with pollard  and pollardWithIterations).The way I did it is a work-around:
+I print the result in the same function(test_pollard and test_pollard_with_iterations) I introduce a IO value (the randomly generated value r).
+
+The function test_pollard returns True if it finished(that is,it found a non-trivial divisor).
+In order to finsh,it will have to enter the "else" branch $\implies$ a will be greater than 0,so (a>0) will be evaluated to True.
+
+
+The function test_pollard_with_iterations returns True  if after the number of iterations specified,a will be 0(i.e. it didn't find any non-trivial divisor).
+So,using this function I will test that a Mersennne
+prime cannot be decomoposed in a given number of iterations.
+
+~~~~~{.haskell}
+<<pollardTests>>=
+test_pollard n b=do
+    r <- randomRIO(2,n-2)
+    let a=pollardFunction n b r
+    if(a==0)
+        then (test_pollard n b)
+        else (print (a>0))
+
+
+test_pollard_with_iterations n b iterations=do
+    r <- randomRIO(2,n-2)
+    let a=pollardFunction n b r
+    if((a==0) && (iterations>0))
+        then (test_pollard_with_iterations n b (iterations-1))
+        else (print (a==0))
+
+main=do
+    $quickCheckAll
+
+    print "(test_pollard 15 5) evaluates as:" 
+    (test_pollard 15 5)
+    print "(test_pollard (7*13) 8) evaluates as:" 
+    (test_pollard (7*13) 8)
+    print "(test_pollard ((2^5)*(3^3)) 3) evaluates as:" 
+    (test_pollard ((3^5)*(5^3))  3)
+    print "(test_pollard ((2^6)*(3^7)*(5^5)) 5) evaluates as:" 
+    (test_pollard ((3^6)*(7^7)*(5^5)) 5)
+    print "(test_pollard ((3^7)*(5^5)*(7^3)) 7) evaluates as:" 
+    (test_pollard ((3^7)*(5^5)*(7^3)) 7)
+    print "(test_pollard ((11^3)*(13^5)) 13 ) evaluates as:" 
+    (test_pollard ((11^3)*(13^5)) 13 )
+    print "(test_pollard ((2^4)*11*(17^5)) 17 ) evaluates as:" 
+    (test_pollard ((7^4)*11*(17^5)) 17 )
+
+    -- --here I use numbers of the form 2^n-1 which are not Mersenne numbers
+    -- --we will test that these nubmers CAN be decomposed
+
+    print "(test_pollard (2^15-1) 13 ) evaluates as:" 
+    (test_pollard (2^15-1) 13 )
+    print "(test_pollard (2^18-1) 17 ) evaluates as:" 
+    (test_pollard (2^18-1) 17 )
+    print "(test_pollard (2^22-1) 17 ) evaluates as:" 
+    (test_pollard (2^22-1) 17 )
+    print "(test_pollard (2^25-1) 17 ) evaluates as:" 
+    (test_pollard (2^25-1) 17 )
+    print "(test_pollard (2^50-1) 17 ) evaluates as:" 
+    (test_pollard (2^50-1) 17 )
+    print "(test_pollard (2^60-1) 17 ) evaluates as:" 
+    (test_pollard (2^60-1) 17 )
+    print "(test_pollard (2^70-1) 17 ) evaluates as:" 
+    (test_pollard (2^70-1) 17 )
+    print "(test_pollard (2^100-1) 17 ) evaluates as:" 
+    (test_pollard (2^100-1) 17 )
+    print "(test_pollard (2^1231-1) 17 ) evaluates as:" 
+    (test_pollard (2^1231-1) 17 )
+    print "(test_pollard (2^4250-1) 17 ) evaluates as:" 
+    (test_pollard (2^4250-1) 17 )
+    print "(test_pollard (2^85329-1) 17 ) evaluates as:" 
+    (test_pollard (2^85329-1) 17 )
+    print "(test_pollard (2^133562-1) 17 ) evaluates as:" 
+    (test_pollard (2^133562-1) 17 )
+    print "(test_pollard (2^859301-1) 17 ) evaluates as:" 
+    (test_pollard (2^859301-1) 17 )
+    print "(test_pollard (2^1000025-1) 17 ) evaluates as:" 
+    (test_pollard (2^1000025-1) 17 )
+
+    --here I use numbers of the form 2^n-1 which are not Mersenne numbers
+    --here we will test that these nubmers CAN NOT be decomposed in a number of given iterations
+
+    print "(test_pollard_with_iterations (2^7-1) 10 10) evaluates as:" 
+    (test_pollard_with_iterations (2^7-1) 10 10)
+    print "(test_pollard_with_iterations (2^13-1) 10 10) evaluates as:" 
+    (test_pollard_with_iterations (2^13-1) 10 10)
+    print "(test_pollard_with_iterations (2^17-1) 10 10) evaluates as:" 
+    (test_pollard_with_iterations (2^17-1) 10 10)
+    print "(test_pollard_with_iterations (2^31-1) 10 10) evaluates as:" 
+    (test_pollard_with_iterations (2^31-1) 10 10)
+    print "(test_pollard_with_iterations (2^61-1) 10 10) evaluates as:" 
+    (test_pollard_with_iterations (2^61-1) 10 10)
+    print "(test_pollard_with_iterations (2^127-1) 10 10) evaluates as:" 
+    (test_pollard_with_iterations (2^127-1) 10 20)
+    print "(test_pollard_with_iterations (2^521-1) 10 10) evaluates as:" 
+    (test_pollard_with_iterations (2^521-1) 10 20)
+    print "(test_pollard_with_iterations (2^2203-1) 10 10) evaluates as:" 
+    (test_pollard_with_iterations (2^2203-1) 10 20)
+    print "(test_pollard_with_iterations (2^21701-1) 10 10) evaluates as:" 
+    (test_pollard_with_iterations (2^21701-1) 10 30)
+    print "(test_pollard_with_iterations (2^110503-1) 10 10) evaluates as:" 
+    (test_pollard_with_iterations (2^110503-1) 10 40)
+    print "(test_pollard_with_iterations (2^216091-1) 10 10) evaluates as:" 
+    (test_pollard_with_iterations (2^216091-1) 10 40)
+@
+~~~~~
+
+~~~~~{.haskell}
+
+
 <<*>>=
 {-# LANGUAGE TemplateHaskell #-}
 import Test.QuickCheck
 import Test.QuickCheck.All
 import System.Random
-import Data.Time
+import Data.Bits
 
 
 @
