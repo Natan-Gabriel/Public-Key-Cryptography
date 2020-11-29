@@ -76,7 +76,7 @@ pollard_wrapper n=do
     let bound = if(inputBound=="NO" || inputBound=="no")
         then 17
         else (read inputBound :: Integer)
-    return $ pollard n bound
+    (pollard n bound)
 pollardWithIterations n b iterations=do
     r <- randomRIO(2,n-2)
     let a=pollardFunction n b r
@@ -90,7 +90,7 @@ pollard_with_iterations_wrapper n iterations=do
     let bound = if(inputBound=="NO" || inputBound=="no")
         then 17
         else (read inputBound :: Integer)
-    return $ pollardWithIterations n bound iterations
+    (pollardWithIterations n bound iterations)
 -- rsmeTest :: Int -> Int -> Int -> Bool
 rsmeTest b k n = (rsmeWrapper b k n) == (mod (b^k) n)
 
@@ -144,7 +144,7 @@ main=do
     print "(test_pollard 15 5) evaluates as:" 
     (test_pollard 15 5)
     print "(test_pollard (7*13) 8) evaluates as:" 
-    (test_pollard (7*13) 8)
+    (test_pollard (7*13) 11)
     print "(test_pollard ((2^5)*(3^3)) 3) evaluates as:" 
     (test_pollard ((3^5)*(5^3))  3)
     print "(test_pollard ((2^6)*(3^7)*(5^5)) 5) evaluates as:" 
@@ -173,40 +173,68 @@ main=do
     (test_pollard (2^60-1) 17 )
     print "(test_pollard (2^70-1) 17 ) evaluates as:" 
     (test_pollard (2^70-1) 17 )
-    print "(test_pollard (2^100-1) 17 ) evaluates as:" 
-    (test_pollard (2^100-1) 17 )
-    print "(test_pollard (2^1231-1) 17 ) evaluates as:" 
-    (test_pollard (2^1231-1) 17 )
-    print "(test_pollard (2^4250-1) 17 ) evaluates as:" 
-    (test_pollard (2^4250-1) 17 )
-    print "(test_pollard (2^85329-1) 17 ) evaluates as:" 
-    (test_pollard (2^85329-1) 17 )
-    print "(test_pollard (2^133562-1) 17 ) evaluates as:" 
-    (test_pollard (2^133562-1) 17 )
+    print "(test_pollard (2^100-1) 23 ) evaluates as:" 
+    (test_pollard (2^100-1) 23 )
+    print "(test_pollard (2^1231-1) 23 ) evaluates as:" 
+    (test_pollard (2^1231-1) 23 )
+    print "(test_pollard (2^4250-1) 23 ) evaluates as:" 
+    (test_pollard (2^4250-1) 23 )
+    print "(test_pollard (2^85329-1) 29 ) evaluates as:" 
+    (test_pollard (2^85329-1) 29 )
+    print "(test_pollard (2^133562-1) 29 ) evaluates as:" 
+    (test_pollard (2^133562-1) 29 )
 
-    --here I use numbers of the form 2^n-1 which are not Mersenne numbers
+    -- --here I use numbers of the form 2^n-1 which are not Mersenne numbers,but 2^(n+1)-1 are Mersenne numbers
+    -- --we will test that these nubmers CAN be decomposed
+
+
+    print "(test_pollard (2^6-1) 11 ) evaluates as:" 
+    (test_pollard (2^6-1) 11 )
+    print "(test_pollard (2^12-1) 11 ) evaluates as:" 
+    (test_pollard (2^12-1) 11 )
+    print "(test_pollard (2^16-1) 11 ) evaluates as:" 
+    (test_pollard (2^16-1) 11)
+    print "(test_pollard (2^30-1) 13 ) evaluates as:" 
+    (test_pollard (2^30-1) 13 )
+    print "(test_pollard (2^60-1) 17 ) evaluates as:" 
+    (test_pollard (2^60-1) 17 )
+    print "(test_pollard (2^126-1) 19) evaluates as:" 
+    (test_pollard (2^126-1) 19 )
+    print "(test_pollard (2^520-1) 29) evaluates as:" 
+    (test_pollard (2^520-1) 29)
+    print "(test_pollard (2^2202-1) 31) evaluates as:" 
+    (test_pollard (2^2202-1) 31)
+    print "(test_pollard (2^21700-1) 31) evaluates as:" 
+    (test_pollard (2^21700-1) 31)
+    print "(test_pollard (2^110502-1) 31) evaluates as:" 
+    (test_pollard (2^110502-1) 31)
+    print "(test_pollard (2^216090-1) 37) evaluates as:" 
+    (test_pollard (2^216090-1) 37)
+
+    --here I use numbers of the form 2^n-1 which are Mersenne numbers
     --here we will test that these nubmers CAN NOT be decomposed in a number of given iterations
 
-    print "(test_pollard_with_iterations (2^7-1) 10 10) evaluates as:" 
-    (test_pollard_with_iterations (2^7-1) 10 10)
-    print "(test_pollard_with_iterations (2^13-1) 10 10) evaluates as:" 
-    (test_pollard_with_iterations (2^13-1) 10 10)
-    print "(test_pollard_with_iterations (2^17-1) 10 10) evaluates as:" 
-    (test_pollard_with_iterations (2^17-1) 10 10)
-    print "(test_pollard_with_iterations (2^31-1) 10 10) evaluates as:" 
-    (test_pollard_with_iterations (2^31-1) 10 10)
-    print "(test_pollard_with_iterations (2^61-1) 10 10) evaluates as:" 
-    (test_pollard_with_iterations (2^61-1) 10 10)
-    print "(test_pollard_with_iterations (2^127-1) 10 10) evaluates as:" 
-    (test_pollard_with_iterations (2^127-1) 10 20)
-    print "(test_pollard_with_iterations (2^521-1) 10 10) evaluates as:" 
-    (test_pollard_with_iterations (2^521-1) 10 20)
-    print "(test_pollard_with_iterations (2^2203-1) 10 10) evaluates as:" 
-    (test_pollard_with_iterations (2^2203-1) 10 20)
-    print "(test_pollard_with_iterations (2^21701-1) 10 10) evaluates as:" 
-    (test_pollard_with_iterations (2^21701-1) 10 30)
-    print "(test_pollard_with_iterations (2^110503-1) 10 10) evaluates as:" 
-    (test_pollard_with_iterations (2^110503-1) 10 40)
-    print "(test_pollard_with_iterations (2^216091-1) 10 10) evaluates as:" 
-    (test_pollard_with_iterations (2^216091-1) 10 40)
+    print "(test_pollard_with_iterations (2^7-1) 11 10) evaluates as:" 
+    (test_pollard_with_iterations (2^7-1) 11 10)
+    print "(test_pollard_with_iterations (2^13-1) 11 10) evaluates as:" 
+    (test_pollard_with_iterations (2^13-1) 11 10)
+    print "(test_pollard_with_iterations (2^17-1) 11 10) evaluates as:" 
+    (test_pollard_with_iterations (2^17-1) 11 10)
+    print "(test_pollard_with_iterations (2^31-1) 13 10) evaluates as:" 
+    (test_pollard_with_iterations (2^31-1) 13 10)
+    print "(test_pollard_with_iterations (2^61-1) 17 10) evaluates as:" 
+    (test_pollard_with_iterations (2^61-1) 17 10)
+    print "(test_pollard_with_iterations (2^127-1) 19 20) evaluates as:" 
+    (test_pollard_with_iterations (2^127-1) 19 20)
+    print "(test_pollard_with_iterations (2^521-1) 29 20) evaluates as:" 
+    (test_pollard_with_iterations (2^521-1) 29 20)
+    print "(test_pollard_with_iterations (2^2203-1) 31 20) evaluates as:" 
+    (test_pollard_with_iterations (2^2203-1) 31 20)
+    print "(test_pollard_with_iterations (2^21701-1) 31 30) evaluates as:" 
+    (test_pollard_with_iterations (2^21701-1) 31 30)
+    print "(test_pollard_with_iterations (2^110503-1) 31 40) evaluates as:" 
+    (test_pollard_with_iterations (2^110503-1) 31 40)
+    print "(test_pollard_with_iterations (2^216091-1) 37 40) evaluates as:" 
+    (test_pollard_with_iterations (2^216091-1) 37 40)
+
 
