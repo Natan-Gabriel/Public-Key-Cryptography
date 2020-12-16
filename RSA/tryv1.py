@@ -5,28 +5,95 @@ def euclidean(a,b):
         return b
     return euclidean(b%a,a)
 
+# generate_large_prime function will generate a random prime number between 2^order+1 and 2^(order+1)-1
+# order represents the number of bits of the number
+# secrets.randbelow(2**order - 1) generates a number from interval [0,2**order - 1) =>
+# secrets.randbelow(2**order - 1) + 2**order + 1 generates a number from interval [2**order + 1,2**order + 2**order) =>
+# a number from interval [2**order + 1,2**(order+1) -1]
 
-def generateLargePrime():
-    return 17
+def miller_rabin_test_wrapper(n,k):
+    t = n - 1
+    s = 0
+    while t % 2 == 0:
+        t = t / 2
+        s += 1
+    while k > 0:
+        result = miller_rabin_test(n, s, t)
+        k -= 1
+        if not result:
+            return False # the result is composite
+    return True #the result may be prime
 
-def generateKey():
-    p = generateLargePrime()
-    q = generateLargePrime() 
-    n=p*q
-    phi_n=(p-1)*(q-1)
+
+
+def miller_rabin_test(n,s,t):
+    a = secrets.randbelow(n - 2) + 2
+    #now let's compute the sequence
+    sequence=[]
+    a_t = rsme(a, t, n)
+    sequence.append(a_t)
+    for i in range(2,s+1):
+        a_t = a_t*a_t % n
+        sequence.append(a_t)
+
+    if sequence[0]==1:
+        return True
+    for i in range(1, len(sequence)):
+        if sequence[i] == 1:
+            if sequence[i-1] == -1:
+                return True
+            else:
+                return False
+    return False
+
+def trivial_primality_check(number):
+    for i in [2,3,5,7,11,13,17,19]:
+        if number % i == 0:
+            return False
+    return True
+
+print(trivial_primality_check(100))
+print(trivial_primality_check(180))
+print(trivial_primality_check(160))
+
+def generate_large_prime_wrapper(order):
+    number = 2 ** order
+    return generate_large_prime(number)
+
+
+def generate_large_prime(number):
+    random_number = secrets.randbelow(number - 1) + number + 1
+    if not trivial_primality_check(random_number):
+        return generate_large_prime(number)
+    # if not miller_rabin_test_wrapper(random_number, 50):
+    #     generate_large_prime(number)
+    #print("not trivial_primality_check(random_number): ",random_number,not trivial_primality_check(random_number))
+    return random_number
+
+
+def generate_key():
+    p = generate_large_prime_wrapper(6)
+    print("p: ", p)
+    q = generate_large_prime_wrapper(6)
+    print("q: ", q)
+    while p==q:
+        q = generate_large_prime_wrapper(6)
+        print("q: ", q)
+    n = p*q
+    phi_n = (p-1)*(q-1)
     #secrets.randbelow(phi_n-2) generates a random in range [0,phi_n-2),then
     #secrets.randbelow(phi_n-2) + 2 generates a random in range [2,phi_n) ,that is(1,phi_n)
-    e=secrets.randbelow(phi_n-2) + 2
-    while euclidean(e,phi_n)!=1:
+    e = secrets.randbelow(phi_n-2) + 2
+    while euclidean(e, phi_n) != 1:
         e = secrets.randbelow(phi_n - 2) + 2
-    res1,d,res2=extendedEuclidean(e,phi_n)
+    _, d, _ = extended_euclidean(e, phi_n)
+    d = (d+phi_n) % phi_n
+    # (n,e) is public key and d is private
+    print(n,e,d,p,q)
+    return n, e, d
 
-    # now (n,e) is public key and d is private
 
-
-
-
-def extendedEuclidean(a,b):
+def extended_euclidean(a,b):
     u2=1
     u1=0
     v2=0
@@ -48,9 +115,9 @@ def extendedEuclidean(a,b):
     v=v2
     return d,u,v
 
-extendedEuclidean(67, 1560)
+extended_euclidean(67, 1560)
 
-def generateBinaryNumber(n):
+def generate_binary_number(n):
     if n==0:
         return [0]
     l=[]
@@ -59,7 +126,16 @@ def generateBinaryNumber(n):
         n=n//2
     return l
 
-print(generateBinaryNumber(11))
+# print(generate_binary_number(11))
+
+def rsme_wrapper(b,k,n):
+    if k>=0:
+        return rsme(b,k,n)
+    k=(-1)*k
+    res = rsme(b,k,n)
+    # _, res, _ = extended_euclidean(res, n)
+    return res
+
 
 
 def rsme(b,k,n):
@@ -67,8 +143,9 @@ def rsme(b,k,n):
     if(k==0):
         return a
     c=b
-    l=generateBinaryNumber(k)
+    l=generate_binary_number(k)
     #print(k,l)
+    print(l)
     if l[0]==1:
         a=b
     for i in range(1,len(l)):
@@ -81,8 +158,8 @@ assert(rsme(16,10,11)==16**10 % 11)
 assert(rsme(116,107,211)==116**107 % 211)
 assert(rsme(145,129,199)==145**129 % 199)
 
-print(rsme(39,67,1643))
-print(39**67 % 1643)
+# print(rsme(39,67,1643))
+# print(39**67 % 1643)
 
 # k=2
 
@@ -93,43 +170,94 @@ print(39**67 % 1643)
 numbers={0:"_",1:"a",2:"b", 3: "c",4: "d",5: "e" ,6: "f",7: "g",8: "h",9: "i",10: "j" ,11:"k",12: "l",13: "m", 14: "n", 15: "o",16: "p",17: "q",18: "r",19: "s",20: "t",21: "u",22: "v",23: "w", 24: "x", 25: "y",26: "z"}
 alphabet={"_":0,"a":1,"b":2, "c":3, "d":4, "e":5 , "f":6, "g":7, "h":8, "i":9, "j":10 ,"k":11, "l":12, "m":13,  "n":14, "o":15, "p":16, "q":17, "r":18, "s":19, "t":20, "u":21, "v":22, "w":23, "x":24, "y":25, "z":26}
 
-def encrypt(plaintext,n,e):
+
+def compute_numerical_equivalent(text):
+    numerical_equivalent=0
+    for i in text:
+        numerical_equivalent = numerical_equivalent * 27 + alphabet[i]
+    return numerical_equivalent
+
+def compute_literal_equivalent(number,iterations):
+    literal_equivalent = ""
+    while iterations > 0:
+
+        literal_equivalent = numbers[number % 27] + literal_equivalent
+        number = number // 27
+        iterations -= 1
+    return literal_equivalent
+
+# print(compute_numerical_equivalent("al"))
+gg="algebra"
+# print(compute_numerical_equivalent(gg[2:4]))
+# print(compute_literal_equivalent(1503,3))
+
+
+
+# Plaintext message units are blocks of k letters, whereas
+# ciphertext message units are blocks of l letters. The plaintext
+# is completed with blanks, when necessary.
+
+def encrypt(plaintext,n,e,k,l):
     ciphertext = ""
-    while len(plaintext) % 2 != 0:
+    while len(plaintext) % k != 0:
         plaintext += "_"
     #Write the numerical equivalents
-    for i in range(0, len(plaintext)//2):
-        numerical_equivalent = alphabet[plaintext[2 * i]]*27+alphabet[plaintext[2 * i + 1]]
+    for i in range(0, len(plaintext)//k):
+        numerical_equivalent = compute_numerical_equivalent(plaintext[k*i:k*(i+1)]) # alphabet[plaintext[2 * i]]*27+alphabet[plaintext[2 * i + 1]]
         # print("numerical_equivalent: ",numerical_equivalent)
-        encrypted_number = rsme(numerical_equivalent, e, n)
-        print("encrypted_number: ", encrypted_number)
-        third_encrypted_letter = numbers[encrypted_number % 27]
-        encrypted_number = encrypted_number // 27
-        second_encrypted_letter = numbers[encrypted_number % 27]
-        encrypted_number = encrypted_number // 27
-        first_encrypted_letter = numbers[encrypted_number]
-        ciphertext = ciphertext + first_encrypted_letter + second_encrypted_letter + third_encrypted_letter
+        encrypted_number = rsme_wrapper(numerical_equivalent, e, n)
+        # print("encrypted_number: ", encrypted_number)
+        literal_equivalent = compute_literal_equivalent(encrypted_number,l)
+        ciphertext = ciphertext + literal_equivalent
 
     return ciphertext
 
-def decrypt(ciphertext,n,d):
+#In the decrypt function we won't have any case in which we have to complete the ciphertext with blanks,
+# because the encrypt function always return a ciphertext of length multiple of "l"
+
+def decrypt(ciphertext,n,d,k,l):
+    # print("ciphertext: ",ciphertext)
     plaintext = ""
-    for i in range(0,len(ciphertext)//3):
-        numerical_equivalent = alphabet[ciphertext[3 * i]] * (27**2) + alphabet[ciphertext[3 * i + 1]] * 27 + alphabet[ciphertext[3 * i + 2]]
-        print("numerical_equivalent: ",numerical_equivalent)
-        decrypted_number = rsme(numerical_equivalent, d, n)
-        print("decrypted_number: ",decrypted_number)
-        second_decrypted_letter = numbers[decrypted_number % 27]
-        decrypted_number = decrypted_number // 27
-        print(decrypted_number)
-        first_decrypted_letter = numbers[decrypted_number]
-        plaintext = plaintext + first_decrypted_letter + second_decrypted_letter
+    for i in range(0,len(ciphertext)//l):
+        numerical_equivalent = compute_numerical_equivalent(ciphertext[l*i:l*(i+1)]) #alphabet[ciphertext[3 * i]] * (27**2) + alphabet[ciphertext[3 * i + 1]] * 27 + alphabet[ciphertext[3 * i + 2]]
+        # print("numerical_equivalent: ",numerical_equivalent)
+        decrypted_number = rsme_wrapper(numerical_equivalent, d, n)
+        # print("decrypted_number: ",decrypted_number)
+        literal_equivalent = compute_literal_equivalent(decrypted_number,k)
+        plaintext = plaintext + literal_equivalent
+    for i in range(len(plaintext)-1, -1, -1):
+        if plaintext[i] == "_":
+            plaintext = plaintext[:-1]
     return plaintext
 
-def main():
-    encrypted_message = encrypt("algebra", 1643, 67)
-    print(encrypted_message)
-    decrypted_message = decrypt(encrypted_message, 1643, 163)
-    print(decrypted_message)
+def RSA(message,k,l):
+    n, e, d = generate_key()
+    # print(n,e,d)
+    print("Message to be encrypted: ", message)
+    encrypted_message = encrypt("algebra", n, e, k, l)
+    print("encrypted_message: ", encrypted_message)
+    decrypted_message = decrypt(encrypted_message, n, d, k, l)
+    print("decrypted_message: ", decrypted_message)
 
-main()
+RSA("algebra",2,3)
+
+def main():
+    message="algebra"
+    print("Message to be encrypted: ",message)
+    encrypted_message = encrypt("algebra", 1643, 67,2,3)
+    print("encrypted_message: ",encrypted_message)
+    decrypted_message = decrypt(encrypted_message, 1643, 163,2,3)
+    print("decrypted_message: ",decrypted_message)
+
+# main()
+
+
+
+
+
+
+
+
+
+
+
