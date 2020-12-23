@@ -1,7 +1,8 @@
 import secrets
 import sys
+import random
 print("sys.getrecursionlimit(): ",sys.getrecursionlimit())
-sys.setrecursionlimit(3000)
+sys.setrecursionlimit(2000)
 
 def euclidean(a, b):
     if (a == 0):
@@ -95,16 +96,6 @@ def miller_rabin_test(n, s, t):
 print("miller_rabin_test_wrapper(100, 50):", miller_rabin_test_wrapper(101, 50))
 # print("miller_rabin_test(101, 2,25):",miller_rabin_test(409, 3,51))
 
-assert miller_rabin_test_wrapper(101, 50)
-assert not miller_rabin_test_wrapper(123, 50)
-assert miller_rabin_test_wrapper(2 ** 17 - 1, 50)
-assert miller_rabin_test_wrapper(2 ** 19 - 1, 50)
-assert not miller_rabin_test_wrapper(2 ** 21 - 1, 50)
-assert not miller_rabin_test_wrapper(2 ** 29 - 1, 50)
-assert miller_rabin_test_wrapper(2 ** 31 - 1, 50)
-assert not miller_rabin_test_wrapper(2 ** 49 - 1, 50)
-assert miller_rabin_test_wrapper(2 ** 61 - 1, 50)
-assert not miller_rabin_test_wrapper(2 ** 80 - 1, 50)
 
 
 def trivial_primality_check(number):
@@ -264,9 +255,13 @@ def decrypt(ciphertext, n, d, k, l):
         # print("decrypted_number: ",decrypted_number)
         literal_equivalent = compute_literal_equivalent(decrypted_number, k)
         plaintext = plaintext + literal_equivalent
+
     for i in range(len(plaintext) - 1, -1, -1):
-        if plaintext[i] == "_":
+        if plaintext[i] == numbers[0]:
             plaintext = plaintext[:-1]
+        else:
+            break
+
     return plaintext
 
 
@@ -335,6 +330,73 @@ def main():
     decrypted_message = decrypt(encrypted_message, 1643, 163, 2, 3)
     print("decrypted_message: ", decrypted_message)
 
+
+def tests():
+    assert miller_rabin_test_wrapper(101, 50)
+    assert not miller_rabin_test_wrapper(123, 50)
+
+    # testing miller_rabin_test_wrapper function (with 50 iterations)
+    for i in [17, 19,31,61,89,107]:
+        assert miller_rabin_test_wrapper(2**i - 1,50)
+    for i in [21,29,49,80,99,123]:
+        assert not miller_rabin_test_wrapper(2**i - 1, 50)
+
+    # testing the extended_euclidean and euclidean functions
+    for i in range(0, 20):
+        a = random.randrange(10, 1000)
+        b = random.randrange(10, 1000)
+        l = extended_euclidean(a, b)
+        assert a * l[1] + b * l[2] == euclidean(a, b)
+
+    # testing the function which computes a^b mod n using repeated squaring modular exponentiation
+    for i in range(0, 20):
+        a = random.randrange(10, 1000)
+        b = random.randrange(10, 1000)
+        n = random.randrange(10, 1000)
+        assert rsme_wrapper(a, b, n) == pow(a, b, n)
+
+    # testing the encrypt and decrypt functions
+
+    for i in range(0, 20):
+        # 27^ k >= n or n >= 27^ l
+        message_length = random.randrange(10, 1000)
+        characters = list(alphabet.keys())
+        message = ''.join([random.choice(characters) for n in range(message_length)])
+        # remove trailing spaces
+        for i in range(len(message) - 1, -1, -1):
+            if message[i] == numbers[0]:
+                message = message[:-1]
+            else:
+                break
+        order = 128
+        n, e, d = generate_key(order)
+        #lower bound is a little bit SMALLER than log 27 2
+        # 27 ** k <= n and n <= 27 ** l
+        # =>k * log 2 27 <= log 2 n and n <= 27 ** l and as we choose
+        # n in interval 2^(order)+1,2^(order+1)-1 => k * log 2 27 <= log 2 n <= order   =>
+        # it's safe to take k = (log 2 27)^(-1) * log 2 n = log 27 2 * log 2 n
+        lower_bound = 0.21030991785714
+        # lower bound is a little bit LARGER than log 27 2
+        upper_bound = 0.21030991785716
+
+        k = random.randrange(1, int(2 * order * lower_bound)+1)
+        # aux is lower bound for l
+        aux = int(2 * (order + 1) * upper_bound) + 1
+        l = random.randrange(aux, aux*4)
+
+        # print("Message to be encrypted: ", message)
+        encrypted_message = encrypt(message, n, e, k, l)
+        # print("encrypted_message: ", encrypted_message)
+        decrypted_message = decrypt(encrypted_message, n, d, k, l)
+        print("message: ",message)
+        print("decrypted_message: ", decrypted_message)
+        assert message == decrypted_message
+
+
+
+
+
+tests()
 
 
 
