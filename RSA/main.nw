@@ -58,31 +58,44 @@ author: Tiutiu Natan-Gabriel,937
 
 # Introduction {#introduction}
 
-I will implement an algorithm for finding a non-trivial divisor using Pollard's p-1 Method.
-I also defined some functions for computing lcm for 2 numbers and also for a list of numbers.
-You can also find an implementaion for repeated squaring modular exponentiation algorithm (we will use rsme as a shortcut).
+I will implement an algorithm (RSA) which will perform encryption for a plaintext and decryption for a ciphertext, based 
+on some pre-generated keys.
+I also defined some functions for computing  binary representaion(as a list) of a decimal number,
+for performing repeated squaring modular exponentiation algorithm (we will use rsme as a shortcut),
+for computing gcd using euclidean algorithm,for computing the modular inverse, using extended euclidean algorithm
+and for testing whether a number is prime (basic version - we just test whether the number is a multiple of the first
+prime numbers and the better one - in which we use miller rabin test)
 
 In order to generate the documentation written using markdown format , run **pandoc -t latex -o main.pdf main.nw** .
 
-In order to generate the source code file, run **notangle main.nw>main.hs** .
+In order to generate the source code file, run **notangle main.nw>main.py** .
 
 Once you have the source code file,start the interpreter using command **ghci** ,then load the file using **:l main.hs** and 
 finally run **pollard YOUR_NUMBER YOUR_BOUND** , for example **pollard 1725 7** in order to find 
 a non-trivial divisor of 1725. You can also run **pollardWithIterations YOUR_NUMBER YOUR_BOUND ITERATIONS_NUMBER**, if you want to see whether 
 the algorithm finds a non-trivial divisor in maximum ITERATIONS_NUMBER iterations.For example you can run **pollardWithIterations (2\^31-1) 19 10** . I recommand you
-to use this function just for testing that in case of prime numbers our algorithm doesn't find any non-trivial divisor in any number of steps.
+to use this function just for testing that in case of prime numbers our algorithm does not find any non-trivial divisor in any number of steps.
 
 In the case you want to be asked whether you want to use the default bound or not, please take a look at functions **pollard_wrapper** and **pollard_with_iterations_wrapper**.
 
 # Repeated Squaring Modular Exponentiation & helper functions
 
-Function generateBinary transforms a decimal number into a binary number.
-This is the mathematical model:
+Function generate_binary_number transforms a decimal number into a binary number.
+This is the algorithm:
 
-$$
-    generate_binary_number(l,n)= \begin{cases}  [0] , if\ n=0 and l=[]
-                  \\ l , if\ n=0 \\  generate_binary_number([n\%2] \bigcup l,n/2) ,else  \end{cases}
-$$
+Input: natural number n
+
+Output: binary representaion of n (as a list)
+
+if n = 0 then return [0]
+
+l=[]
+
+while n>0 do:
+
+\quad l=l $\bigcup$ (n modulo 2)
+
+\quad n = n / 2 (we take the integer part of the result)
 
 ~~~~~{.python}
 <<generate_binary_number>>=
@@ -98,6 +111,44 @@ def generate_binary_number(n):
 ~~~~~
 
 
+Let define Repeated Squaring Modular Exponentiation (rsme) function:
+
+Input: b, k, n in N with b < n and k = $\sum_{i=0}^{t} k_i*2^{i}$
+
+Output: a = $b^{k}$ mod n.
+
+
+a=1
+
+if k=0 then write(a)
+
+c=b
+
+if $k_0$ =1 then a=b
+
+for i=1 to t do
+
+\quad c= $c^{2}$ mod n
+
+\quad if $k_i$ =1 then a=c*a mod n
+
+write(a)
+
+
+**Proof of corectness for Repeated Squaring Modular Exponentiation:**
+
+We have k = $\sum_{i=0}^{t} k_i*2^{i}$
+
+if k=0 => we return 1 because any integer to the power 0 is 1.
+
+At each step we have $b^{2^{i}}$ mod n,starting from i=1(from right in binary representation).
+Using $b^{2^{i}}$ mod n, we compute $b^{2^{i+1}}$ mod n = $(b^{2^{i}})^{2}$ mod n = $(b^{2^{i}} mod\ n)^{2}$.
+If the ${k_i}$ is 1 then we compute :  ( new a= new c* old a mod n ).This holds because
+ $b^{\sum_{i=0}^{t} k_i*2^{i}}$ = $b^{ k_0*2^{0}}$ * $b^{ k_1*2^{1}}$ * ...* $b^{ k_t*2^{t}}$ and then 
+ $b^{k}$ mod n = $b^{\sum_{i=0}^{t} k_i*2^{i}}$ mod n = ($b^{ k_0*2^{0}}$ mod n) * ($b^{ k_1*2^{1}}$ mod n) * ...* ($b^{ k_t*2^{t}}$ mod n) ,
+where ($b^{ k_i*2^{i}}$ mod n) is our c computed at i-th iteration(for $k_i$=1).
+
+
 
 ~~~~~{.python}
 <<rsme>>=
@@ -107,8 +158,6 @@ def rsme(b, k, n):
         return a
     c = b
     l = generate_binary_number(k)
-    # print(k,l)
-    # print(l)
     if l[0] == 1:
         a = b
     for i in range(1, len(l)):
@@ -119,27 +168,138 @@ def rsme(b, k, n):
 @
 ~~~~~
 
-~~~~~{.python}
-<<rsme_wrapper>>=
-def rsme_wrapper(b, k, n):
-    if k >= 0:
-        return rsme(b, k, n)
-    k = (-1) * k
-    res = rsme(b, k, n)
-    return res
-@
-~~~~~
+# Euclidean algorithm
 
+Description:
+
+As long as b,which is the second element is not equal to 0,we will call
+recursively euclidean(b,a%b) .We can observe that always second
+element becomes the first element in the new recursive call.If we would not
+inverse the position of the elements,we would get stuck(in some cases).
+
+Ex.:a =1000,b=100 euclidean(1000,100)= euclidean(1000,100)= ...= euclidean(1000,100)= ....
+
+Here is the mathematical model:
+
+$$
+ euclidean(a,b)= \begin{cases} euclidean(b,a\%b), if b>0 \\ a,else  \end{cases}
+$$
+
+The proof of corectness is based on the following lemma:
+
+*If a=c(mod b) (1), then (a,b)=(c,b)  (3)*
+
+
+Proof of this lemma:
+
+From (1) we have b|a-c,so there is a y such that by=a-c.If there is
+a d such that d divides a and b ,then it will also divide c=a-by.
+=>any divisor of a and b is a divisor of c and b. (2)
+Suppose (a,b)=x and (c,b)=y.Using (2) we have that x|y and y|x ,so we
+have that (a,b)=(c,b).
+
+For our problem we use this:
+
+We have a=a%b(mod b) =>using lemma (3)  we have that (a,b)=(a%b,b)
 
 
 ~~~~~{.python}
 <<euclidean>>=
 def euclidean(a, b):
-    if (a == 0):
-        return b
-    return euclidean(b % a, a)
+    if b>0:
+        return euclidean(b, a % b)
+    return a
 @
 ~~~~~
+
+# Extended euclidean algorithm
+
+Description:
+
+We can observe that the array defined as follows respects the definition of r (the variable r used in extended_euclidean function) : 
+
+$r_{0}$= a
+
+$r_{1}$= b
+
+$r_{2}$= $r_{0}$  % $r_{1}$ (1)
+
+.........
+
+$r_{i}$= $r_{i-2}$ % $r_{i-1}$ 
+
+Let $q_{i}$ be the quotient of $r_{i-2}$ / $r_{i-1}$  $\implies$ 
+$r_{i-2}$ = $q_{i}$ * $r_{i-1}$ + $r_{i}$
+
+Hence, we have that:
+
+$r_{i}$= $r_{i-2}$ - $q_{i}$ * $r_{i-1}$ (\*)
+
+
+We will prove by induction that : P(k): $r_{k}$= $s_{k}$ * a + $t_{k}$ * b , where 
+$s_{k}$= $s_{k-2}$ - $q_{k}$ * $s_{k-1}$ and $t_{k}$= $t_{k-2}$ - $q_{k}$ * $t_{k-1}$ , is true $\forall b \ge$ 2 , 
+where $s_{0}$= 1, $s_{1}$= 0 and $t_{0}$= 0, $t_{1}$= 1
+
+P(2):
+
+$s_{2}$= $s_{0}$ - $q_{2}$ * $s_{1}$ = 1 - 0 = 1
+
+
+
+$t_{2}$= $t_{0}$ - $q_{2}$ * $t_{1}$ = 0 - $q_{2}$ = - a/b
+
+
+$r_{2}$ = a % b (using (1))     (2)
+
+$s_{2}$ * a + $t_{2}$ * b = 1 * a - (a/b) * b = a - q*b = a % b  (3)
+
+Using (2) and (3) => P(2) is true
+
+P(k) $\implies$ P(k+1)
+
+P(k+1): $r_{k+1}$= $s_{k+1}$ * a + $t_{k+1}$ * b , where 
+$s_{k+1}$= $s_{k-1}$ - $q_{k+1}$ * $s_{k}$ and $t_{k+1}$= $t_{k-1}$ - $q_{k+1}$ * $t_{k}$
+
+So, we have $r_{k+1}$ = $s_{k+1}$ * a + $t_{k+1}$ * b = 
+($s_{k-1}$ - $q_{k+1}$ * $s_{k}$) * a + ($t_{k-1}$ - $q_{k+1}$ * $t_{k}$) * b = 
+$s_{k-1}$ * a - $q_{k+1}$ * $s_{k}$ * a + $t_{k-1}$ * b - $q_{k+1}$ * $t_{k}$ * b = 
+($s_{k-1}$ * a + $t_{k-1}$ * b) - $q_{k+1}$ * ($s_{k}$ * a + $t_{k}$ * b) = 
+$r_{k - 1}$ - $q_{k+1}$ * $r_{k}$ (so we reached the definition of $r_{k+1}$, as you can see in (\*) ) $\implies$  P(k+1) is true
+
+So,we have $r_{k}$= $s_{k}$ * a + $t_{k}$ * b , where 
+$s_{k}$= $s_{k-2}$ - $q_{k}$ * $s_{k-1}$ and $t_{k}$= $t_{k-2}$ - $q_{k}$ * $t_{k-1}$ , $\forall b \ge$ 2 .
+
+Once $r_{k}$ becomes 0, the algorithm will stop. Then we will say that 
+gcd(a,b)= $r_{k}$ and gcd(a,b)= $s_{k}$ * a + $t_{k}$ * b .
+
+In our program we just keep the last 2 values, not the entire arrays.
+We denoted u=s and v=t.
+  
+
+
+
+
+This is the algorithm:
+
+Input: a, b $\in$  $\mathbf{N}$ , a,b $\le$ n, a $\ge$ b.
+
+Output: d=gcd(a,b) and u,v $\in$ $\mathbf{Z}$ such that au + bv = d.
+
+Algorithm:
+
+u2=1; u1=0; v2=0; v1=1;
+
+while b>0 do:
+
+\quad q= [a / b]; r= a - q*b; u= u2 - q*u1; v= v2 - q*v1;
+
+\quad a= b; b= r; u2= u1; u1= u; v2= v1; v1= v;
+
+d= a; u= u2; v= v2;
+
+write(d, u, v)
+
+
 
 ~~~~~{.python}
 <<extended_euclidean>>=
@@ -166,6 +326,8 @@ def extended_euclidean(a, b):
     return d, u, v
 @
 ~~~~~
+
+# Miller-Rabin test
 
 
 ~~~~~{.python}
@@ -338,7 +500,7 @@ def encrypt(plaintext, n, e, k, l):
         numerical_equivalent = compute_numerical_equivalent(
             plaintext[k * i:k * (i + 1)])  # alphabet[plaintext[2 * i]]*27+alphabet[plaintext[2 * i + 1]]
         # print("numerical_equivalent: ",numerical_equivalent)
-        encrypted_number = rsme_wrapper(numerical_equivalent, e, n)
+        encrypted_number = rsme(numerical_equivalent, e, n)
         # print("encrypted_number: ", encrypted_number)
         literal_equivalent = compute_literal_equivalent(encrypted_number, l)
         ciphertext = ciphertext + literal_equivalent
@@ -363,7 +525,7 @@ def decrypt(ciphertext, n, d, k, l):
         numerical_equivalent = compute_numerical_equivalent(ciphertext[l * i:l * (
                     i + 1)])  # alphabet[ciphertext[3 * i]] * (27**2) + alphabet[ciphertext[3 * i + 1]] * 27 + alphabet[ciphertext[3 * i + 2]]
         # print("numerical_equivalent: ",numerical_equivalent)
-        decrypted_number = rsme_wrapper(numerical_equivalent, d, n)
+        decrypted_number = rsme(numerical_equivalent, d, n)
         # print("decrypted_number: ",decrypted_number)
         literal_equivalent = compute_literal_equivalent(decrypted_number, k)
         plaintext = plaintext + literal_equivalent
@@ -466,15 +628,15 @@ def tests():
         l = extended_euclidean(a, b)
         assert a * l[1] + b * l[2] == euclidean(a, b)
 
-    # testing the rsme_wrapper function, which computes a^b mod n using repeated squaring modular exponentiation
-    assert (rsme_wrapper(16, 10, 11) == pow(16, 10, 11)
-    assert (rsme_wrapper(116, 107, 211) == pow(116, 107, 211)
-    assert (rsme_wrapper(145, 129, 199) == pow(145, 129, 199)
+    # testing the rsme function, which computes a^b mod n using repeated squaring modular exponentiation
+    assert (rsme(16, 10, 11) == pow(16, 10, 11)
+    assert (rsme(116, 107, 211) == pow(116, 107, 211)
+    assert (rsme(145, 129, 199) == pow(145, 129, 199)
     for i in range(0, 20):
         a = random.randrange(10, 1000)
         b = random.randrange(10, 1000)
         n = random.randrange(10, 1000)
-        assert rsme_wrapper(a, b, n) == pow(a, b, n)
+        assert rsme(a, b, n) == pow(a, b, n)
 
     # testing the encrypt and decrypt functions
 
@@ -529,7 +691,6 @@ sys.setrecursionlimit(2000)
 
 <<generate_binary_number>>
 <<rsme>>
-<<rsme_wrapper>>
 
 <<euclidean>>
 <<extended_euclidean>>
