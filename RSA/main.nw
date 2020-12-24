@@ -216,6 +216,8 @@ def euclidean(a, b):
 
 Description:
 
+I will use 3 arrays in this explanation,because I think that using arrays is somehow easier to unterstand this algorithm. 
+
 We can observe that the array defined as follows respects the definition of r (the variable r used in extended_euclidean function) : 
 
 $r_{0}$= a
@@ -270,7 +272,7 @@ So,we have $r_{k}$= $s_{k}$ * a + $t_{k}$ * b , where
 $s_{k}$= $s_{k-2}$ - $q_{k}$ * $s_{k-1}$ and $t_{k}$= $t_{k-2}$ - $q_{k}$ * $t_{k-1}$ , $\forall b \ge$ 2 .
 
 Once $r_{k}$ becomes 0, the algorithm will stop. Then we will say that 
-gcd(a,b)= $r_{k}$ and gcd(a,b)= $s_{k}$ * a + $t_{k}$ * b .
+gcd(a,b)= $r_{k-1}$ and gcd(a,b)= $s_{k-1}$ * a + $t_{k-1}$ * b .
 
 In our program we just keep the last 2 values, not the entire arrays.
 We denoted u=s and v=t.
@@ -329,6 +331,54 @@ def extended_euclidean(a, b):
 
 # Miller-Rabin test
 
+The Miller-Rabin test is widely used in practice for RSA, so I decided to use it in my RSA implementation.
+
+*Description: *
+
+Extract the square roots from the previous
+congruence successively, that is, raise b to $\frac{n-1}{2}$ , $\frac{n-1}{4}$ , ... , $\frac{n-1}{2^{s}}$ , 
+s , where t = $\frac{n-1}{2^{s}}$ is odd . 
+Then the first result different of 1 has to be -1 if n is
+prime, because 1 and -1 are the only square roots modulo a prime of 1.
+
+*Remarks:*
+
+If the algorithm gives the answer composite(that is, False in our case), then this is composite
+for sure.
+If the algorithm gives the answer PRIME, then the probability
+of correct answer is 1 - $\frac{1}{4^{k}}$ , where k is the number of
+repetitions.
+In my implementation I use k = 50 (you can change it in the function generate_large_prime in the second if branch) . The probability that 
+the Miller-Rabin test gives the wrong answer is (at most): 
+
+\begin{center}
+$\frac{1}{4^{50}}$ = $\frac{1}{1267650600228229401496703205376}$
+\end{center}
+
+So, this is much less than the probability to get the wrong answer due to an hardware error.
+
+
+
+
+The function miller_rabin_test_wrapper compute s and t for a given n,where 
+ n - 1 =  $2^{s}$ * t. We call the function miller_rabin_test at most k times. 
+ If the result is False, then we return False as well. Else,if we did not get any False, 
+ we will return True (after k iteration), that is, n may be prime. 
+ 
+ This is the algorithm: 
+
+Write n - 1 =  $2^{s}$ * t, where t is odd.
+
+while k>0 do
+
+\quad if miller_rabin_test(n, s, t)=False:
+
+\quad \quad return False
+
+\quad k=k-1
+
+return True
+
 
 ~~~~~{.python}
 <<miller_rabin_test_wrapper>>=
@@ -341,12 +391,27 @@ def miller_rabin_test_wrapper(n, k):
     # print("aici",s,t)
     while k > 0:
         result = miller_rabin_test(n, s, t)
-        k -= 1
         if not result:
             return False  # the result is composite
+        k -= 1
     return True  # the result may be prime
 @
 ~~~~~
+
+The function miller_rabin_test represents the main part of the test. 
+This is the algorithm :
+
+Choose (randomly) 1 < a < n
+
+Compute (by the repeated squaring modular exponentiation) the
+following sequence (modulo n):
+
+\begin{center}
+$a^{t}$, $a^{2t}$, $a^{2^{2}t}$, ..., $a^{2^{s}t}$
+\end{center}
+
+If either the first number in the sequence is 1 or if one gets the
+value 1 and its previous number -1 (that is n-1), return True (that is, n may be prime) ,else return False
 
 
 ~~~~~{.python}
@@ -374,8 +439,27 @@ def miller_rabin_test(n, s, t):
 @
 ~~~~~
 
+# Key generation (public key & private key)
 
+In the following section I will present the function I use for the key generation: 
+trivial_primality_check, generate_large_prime_wrapper, generate_large_prime and generate_key.
 
+Of course, miller_rabin_test_wrapper and miller_rabin_test presented in the previous section are involved 
+in the key generation, but I tought that miller-rabin test deserves a separate section.  
+
+The function trivial_primality_check just checks whether the number is a multiple
+of the first prime numbers (prime numbers less than 20 in our case). This function helps us to avoid 
+running miller-rabin tests for trivial composite numbers.
+
+This is the algorithm:
+
+for i in [2, 3, 5, 7, 11, 13, 17, 19] do
+
+\quad if i divides number :
+
+\quad \quad return False
+
+return True
 
 ~~~~~{.python}
 <<trivial_primality_check>>=
@@ -387,22 +471,38 @@ def trivial_primality_check(number):
 @
 ~~~~~
 
+The function generate_large_prime_wrapper computes $2^{order}$. Because we use this wrapper (helper function), 
+we will not have to compute this large number ( $2^{order}$ ) at each recursive call in generate_large_prime, but just once. 
 
+The function generate_large_prime will generate a random prime number between $2^{order}$+1 and $2^{order+1}$-1.
+The parameter order represents the number of bits of the number to be generated.
+We have that secrets.randbelow(2\*\*order - 1) generates a natural number from interval [0,$2^{order}$ - 1) $\implies$
+secrets.randbelow(2\*\*order - 1) + 2\**order + 1 generates a natural number from interval [$2^{order}$ + 1,$2^{order}$ + $2^{order}$) $\implies$
+a natural number from interval [$2^{order}$ + 1,$2^{order+1}$ -1] . 
+In  generate_large_prime we have:  number = $2^{order}$ (as in was computed in generate_large_prime_wrapper) .
 
 
 ~~~~~{.python}
 <<generate_large_prime_wrapper>>=
-# generate_large_prime function will generate a random prime number between 2^order+1 and 2^(order+1)-1
-# order represents the number of bits of the number
-# secrets.randbelow(2**order - 1) generates a number from interval [0,2**order - 1) =>
-# secrets.randbelow(2**order - 1) + 2**order + 1 generates a number from interval [2**order + 1,2**order + 2**order) =>
-# a number from interval [2**order + 1,2**(order+1) -1]
 def generate_large_prime_wrapper(order):
     number = 2 ** order
     return generate_large_prime(number)
 @
 ~~~~~
 
+The algorithm for generate_large_prime function is :
+
+Generate a random number from [$2^{order}$ + 1,$2^{order+1}$ -1] . 
+
+if trivial_primality_check(random_number)=False
+
+\quad return generate_large_prime(number)
+
+if miller_rabin_test_wrapper(random_number,50)=False
+
+\quad return generate_large_prime(number)
+
+return random_number
 
 ~~~~~{.python}
 <<generate_large_prime>>=
@@ -417,6 +517,25 @@ def generate_large_prime(number):
 @
 ~~~~~
 
+The generate_key function generates a public and a private key (in a given interval - defined by the parameter order).
+
+This is the algorithm:
+
+Generates 2 random large distinct primes p, q of
+approximately same size (size is defined by the parameter order )
+
+Computes n = pq and $\varphi$(n) = (p - 1)(q - 1) (the Euler
+function).
+
+Randomly selects 1 < e < $\varphi$(n) with gcd(e, $\varphi$(n) ) = 1
+
+Computes d =$e^{-1}$ mod $\varphi$(n).
+
+The public key is $K_{E}$ = (n, e); the private key is $K_{D}$ = d
+
+For generating a random number e, 1 < e < $\varphi$(n) we use secrets.randbelow(phi_n-2) + 2: secrets.randbelow(phi_n-2) generates a random natural number in range [0,$\varphi$(n) - 2) $\implies$
+secrets.randbelow(phi_n-2) + 2 generates a random natural number in range [2,$\varphi$(n)) ,that is interval (1,$\varphi$(n))
+
 ~~~~~{.python}
 <<generate_key>>=
 def generate_key(order):
@@ -425,7 +544,7 @@ def generate_key(order):
     q = generate_large_prime_wrapper(order)
     print("q: ", q)
     while p == q:
-        q = generate_large_prime_wrapper(6)
+        q = generate_large_prime_wrapper(order)
         print("q: ", q)
     n = p * q
     phi_n = (p - 1) * (q - 1)
@@ -443,18 +562,53 @@ def generate_key(order):
 ~~~~~
 
 
+# Alphabet
+
+Because we will discuss about encryption and decryption in the following 2 sections, I think that this is the best time to 
+introduce 2 dictionaries: alphabet and numbers. 
+
+We use a 27-letters alphabet for plaintext and ciphertext:
+the blank(" ") with numerical equivalent 0 and letters A - Z (the
+English alphabet) with numerical equivalents 1-26 .
+
+The numbers dictionary is obtained by inverting the alphabet dictionary.
 
 ~~~~~{.python}
 <<alphabet>>=
 
-numbers = {0: " ", 1: "a", 2: "b", 3: "c", 4: "d", 5: "e", 6: "f", 7: "g", 8: "h", 9: "i", 10: "j", 11: "k", 12: "l",
-           13: "m", 14: "n", 15: "o", 16: "p", 17: "q", 18: "r", 19: "s", 20: "t", 21: "u", 22: "v", 23: "w", 24: "x",
-           25: "y", 26: "z"}
 alphabet = {" ": 0, "a": 1, "b": 2, "c": 3, "d": 4, "e": 5, "f": 6, "g": 7, "h": 8, "i": 9, "j": 10, "k": 11, "l": 12,
             "m": 13, "n": 14, "o": 15, "p": 16, "q": 17, "r": 18, "s": 19, "t": 20, "u": 21, "v": 22, "w": 23, "x": 24,
             "y": 25, "z": 26}
+
+numbers = {0: " ", 1: "a", 2: "b", 3: "c", 4: "d", 5: "e", 6: "f", 7: "g", 8: "h", 9: "i", 10: "j", 11: "k", 12: "l",
+           13: "m", 14: "n", 15: "o", 16: "p", 17: "q", 18: "r", 19: "s", 20: "t", 21: "u", 22: "v", 23: "w", 24: "x",
+           25: "y", 26: "z"}
+
 @
 ~~~~~
+
+# Encryption
+
+Let us start with 2 helper functions: compute_numerical_equivalent and compute_literal_equivalent . They are doing 
+what the names suggest.
+
+Exapmle for compute_numerical_equivalent: 
+
+al -> 1 * 27 + 12 = 39 $\implies$ numerical equivalent for "al" is 39.
+
+The algorithm for compute_numerical_equivalent: 
+
+Input: a sequence of characters (that is, a text)
+
+Output: numerical equivalent for a sequence of characters (that is, a text)
+
+numerical_equivalent = 0
+
+for each character in text do:
+
+\quad numerical_equivalent = numerical_equivalent * 27 + alphabet[i]
+
+return numerical_equivalent
 
 
 ~~~~~{.python}
@@ -467,6 +621,28 @@ def compute_numerical_equivalent(text):
 @
 ~~~~~
 
+Exapmle for compute_literal_equivalent: 
+
+1428 = 1 * $27^{2}$ + 25 * 27 + 24 -> AYX $\implies$ literal equivalent for 1428 is "AYX".
+
+The algorithm for compute_literal_equivalent: 
+
+Input: number, iterations
+
+Output: literal equivalent for a numerical sequence
+
+
+literal_equivalent = ""
+
+while iterations > 0 do
+
+\quad literal_equivalent = numbers[number modulo 27] + literal_equivalent
+
+\quad number = number / 27 (keep the integer part in result)
+
+\quad iterations = iterations - 1
+
+return literal_equivalent
 
 ~~~~~{.python}
 <<compute_literal_equivalent>>=
@@ -481,13 +657,31 @@ def compute_literal_equivalent(number, iterations):
 ~~~~~
 
 
+The algorithm for encrypt function is: 
+
+Input: plaintext, n , e (n and e form the public key, which is needed for encryption) , k (plaintext message units are blocks of k letters) , l (ciphertext message units are blocks of l letters)
+
+Output: ciphertext
+
+Check whether the constraint $27^{k}$ < n < $27^{l}$ holds
+
+ciphertext = ""
+
+Complete the plaintext with blanks (that is numbers[0]), if necessary
+
+for each block of k characters in plaintext do
+
+\quad compute m = numerical equivalent of the block
+
+\quad compute c = $m^{e}$ mod n
+
+\quad add to ciphertext the literal equivalent of c
+
+return ciphertext
 
 
 ~~~~~{.python}
 <<encrypt>>=
-# Plaintext message units are blocks of k letters, whereas
-# ciphertext message units are blocks of l letters. The plaintext
-# is completed with blanks, when necessary.
 def encrypt(plaintext, n, e, k, l):
     if 27 ** k >= n or n >= 27 ** l:
         return "Please choose some appropriate values for k and l"
@@ -495,10 +689,10 @@ def encrypt(plaintext, n, e, k, l):
     ciphertext = ""
     while len(plaintext) % k != 0:
         plaintext += numbers[0]
-    # Write the numerical equivalents
+
     for i in range(0, len(plaintext) // k):
         numerical_equivalent = compute_numerical_equivalent(
-            plaintext[k * i:k * (i + 1)])  # alphabet[plaintext[2 * i]]*27+alphabet[plaintext[2 * i + 1]]
+            plaintext[k * i:k * (i + 1)])
         # print("numerical_equivalent: ",numerical_equivalent)
         encrypted_number = rsme(numerical_equivalent, e, n)
         # print("encrypted_number: ", encrypted_number)
@@ -510,20 +704,48 @@ def encrypt(plaintext, n, e, k, l):
 ~~~~~
 
 
+
+# Decryption
+
+The algorithm for decrypt function is: 
+
+Input: ciphertext, n , d (private key, which is needed for decryption) , k (plaintext message units are blocks of k letters) , l (ciphertext message units are blocks of l letters)
+
+Output: plaintext
+
+
+Check whether the constraint $27^{k}$ < n < $27^{l}$ holds
+
+plaintext = ""
+
+for each block of l characters in ciphertext do
+
+\quad compute m = numerical equivalent of the block
+
+\quad compute c = $m^{d}$ mod n
+
+\quad add to plaintext the literal equivalent of c
+
+remove trailing spaces from the plaintext
+
+return plaintext
+
+*Remark*
+
+In the decrypt function we will not have any case in which we have to complete the ciphertext with blanks,
+because the encrypt function always returns a ciphertext of length multiple of "l"
+
 ~~~~~{.python}
 <<decrypt>>=
-# In the decrypt function we won't have any case in which we have to complete the ciphertext with blanks,
-# because the encrypt function always return a ciphertext of length multiple of "l"
+
 def decrypt(ciphertext, n, d, k, l):
-    # we MUST have 27^k < n < 27^l
     if 27 ** k >= n or n >= 27 ** l:
         return "Please choose some appropriate values for k and l"
-
     # print("ciphertext: ",ciphertext)
     plaintext = ""
     for i in range(0, len(ciphertext) // l):
         numerical_equivalent = compute_numerical_equivalent(ciphertext[l * i:l * (
-                    i + 1)])  # alphabet[ciphertext[3 * i]] * (27**2) + alphabet[ciphertext[3 * i + 1]] * 27 + alphabet[ciphertext[3 * i + 2]]
+                    i + 1)])
         # print("numerical_equivalent: ",numerical_equivalent)
         decrypted_number = rsme(numerical_equivalent, d, n)
         # print("decrypted_number: ",decrypted_number)
@@ -540,25 +762,72 @@ def decrypt(ciphertext, n, d, k, l):
 @
 ~~~~~
 
+# RSA function
+
+This function simply combine the functions defined above. 
+It requires a message as paramater. You can also add some optional parameters:
+
+1. order - p and q will be generated in the interval [$2^{order}$ + 1,$2^{order+1}$ -1],so 
+n will be approximately in the interval [$2^{2*order}$, $2^{2*order+2}$ ]
+
+2. k - plaintext message units will be blocks of k letters
+
+3. l - ciphertext message units will be blocks of l letters
+
+
+
+The default order is 512, so n will have 1024 bits,so the security level will be 80 (An algorithm is said to have a security level of n bit if the best
+known attack requires $2^{n}$ steps).
+
+The largest number factored (maybe not up-to-date): a 768-bit number with 232
+decimal digits, announced on December 12, 2009, using hundreds of machines over two years
+
+So, we are pretty safe using the default value for order.
+
+If you do not provide some values for k and l, these values will be randomly generated such that the constraint 
+$27^{k}$ < n < $27^{l}$ will hold . 
+
+We have that lower_bound is a little bit SMALLER than $log_{27}$ 2.
+Also, upper_bound is a little bit LARGER than $log_{27}$ 2.
+
+Let us check whether $27^{k}$ < n < $27^{l}$ will hold , where the maximum value of k is int(2 * order * lower_bound)
+and the minimum value of l is int(2 * (order + 1) * upper_bound) + 1 (you can see the random generation of this values below, in the RSA function).
+
+We have $27^{max(k)}$ = $27^{int(2 * order * lower_bound)}$ $\le$ $27^{2 * order * lower_bound}$  = $(27^{ lower\_bound } )^{2 * order}$ < 
+$(27^{ log_{27} 2 } )^{2 * order}$ = $ 2 ^ {2 * order}$  < n , because p and q are from interval [$2^{order}$ + 1,$2^{order+1}$ -1] and n = pq
+
+We have $27^{min(l)}$ = $27^{ int(2 * (order + 1) * upper_bound) + 1 }$ > $27^{2 * (order + 1) * upper_bound}$  = $(27^{ upper\_bound } )^{2 * (order + 1)}$ >
+$(27^{ log_{27} 2 } )^{2 * (order + 1)}$ = $ 2 ^ {2 * (order + 1)}$  > n , because p and q are from interval [$2^{order}$ + 1,$2^{order+1}$ -1] and n = pq
+
+
+$\implies$  it’s safe to use the default values (auto-generated values) for k and l. 
+
 
 ~~~~~{.python}
 <<RSA>>=
-def RSA(message, order=1024, k=-1, l=-1):
+def RSA(message, order=512, k=-1, l=-1):
     n, e, d = generate_key(order)
     lower_bound = 0.21030991785714
     upper_bound = 0.21030991785716
     if k == -1 or l == -1:
-        k = int(2 * order * lower_bound)
-        l = int(2 * (order + 1) * upper_bound) + 1
+        # k = int(2 * order * lower_bound)
+        # l = int(2 * (order + 1) * upper_bound) + 1
+        k = random.randrange(2, int(2 * order * lower_bound)+1)
+        aux = int(2 * (order + 1) * upper_bound) + 1
+        l = random.randrange(aux, aux*4)
     # print(n,e,d)
     print("Message to be encrypted: ", message)
     encrypted_message = encrypt(message, n, e, k, l)
     print("encrypted_message: ", encrypted_message)
     decrypted_message = decrypt(encrypted_message, n, d, k, l)
     print("decrypted_message: ", decrypted_message)
+    
 @
 ~~~~~
 
+The function RSA_using_file is similar to RSA. The differences are: 
+we read the message from a file and we write the ciphertext and plaintext obtained after decyption in 2 files, each
+of them having an additional extension. The additional extensions are  ".encrypted"  and ".decrypted" . 
 
 ~~~~~{.python}
 <<RSA_using_file>>=
@@ -567,8 +836,11 @@ def RSA_using_file(file_name, order=512, k=-1, l=-1):
     lower_bound = 0.21030991785714
     upper_bound = 0.21030991785716
     if k == -1 or l == -1:
-        k = int(2 * order * lower_bound)
-        l = int(2 * (order + 1) * upper_bound) + 1
+        # k = int(2 * order * lower_bound)
+        # l = int(2 * (order + 1) * upper_bound) + 1
+        k = random.randrange(2, int(2 * order * lower_bound)+1)
+        aux = int(2 * (order + 1) * upper_bound) + 1
+        l = random.randrange(aux, aux*4)
     # print(n,e,d)
 
     f = open(file_name, "r")
@@ -597,6 +869,7 @@ def RSA_using_file(file_name, order=512, k=-1, l=-1):
 @
 ~~~~~
 
+
 ~~~~~{.python}
 <<main>>=
 def main():
@@ -608,6 +881,14 @@ def main():
     print("decrypted_message: ", decrypted_message)
 @
 ~~~~~
+
+Below we have some tests. We test function miller_rabin_test_wrapper with some basic values and also 
+with some Mersenne primes. We also test it with some numbers having the form $2^{n}$ - 1,but which are not Mersenne primes.
+We use 50 repetitions for the tests, so they should not give a wrong result. 
+
+We also test other helper functions,such as extended_euclidean, euclidean and rsme functions . 
+
+
 
 ~~~~~{.python}
 <<tests>>=
