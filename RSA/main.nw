@@ -70,32 +70,13 @@ In order to generate the documentation written using markdown format , run **pan
 
 In order to generate the source code file, run **notangle main.nw>main.py** .
 
-Once you have the source code file,start the interpreter using command **ghci** ,then load the file using **:l main.hs** and 
-finally run **pollard YOUR_NUMBER YOUR_BOUND** , for example **pollard 1725 7** in order to find 
-a non-trivial divisor of 1725. You can also run **pollardWithIterations YOUR_NUMBER YOUR_BOUND ITERATIONS_NUMBER**, if you want to see whether 
-the algorithm finds a non-trivial divisor in maximum ITERATIONS_NUMBER iterations.For example you can run **pollardWithIterations (2\^31-1) 19 10** . I recommand you
-to use this function just for testing that in case of prime numbers our algorithm does not find any non-trivial divisor in any number of steps.
-
-In the case you want to be asked whether you want to use the default bound or not, please take a look at functions **pollard_wrapper** and **pollard_with_iterations_wrapper**.
+Once you have the source code file, you just have to run the python source file, using **python main.py** .
+If you want to change the code you run, just modify the content of the main function. For example, you can encrypt and decrypt the message represented as a string, or if you uncomment 
+the second line from the main function, you can encrypt and decrypt a message from a file (first of all please create a file in which you have just lowercase letters from the English alphabet and the blank (empty space) ).
 
 # Repeated Squaring Modular Exponentiation & helper functions
 
-Function generate_binary_number transforms a decimal number into a binary number.
-This is the algorithm:
-
-Input: natural number n
-
-Output: binary representaion of n (as a list)
-
-if n = 0 then return [0]
-
-l=[]
-
-while n>0 do:
-
-\quad l=l $\bigcup$ (n modulo 2)
-
-\quad n = n / 2 (we take the integer part of the result)
+You can find more details about the following functions in my previous projects.
 
 ~~~~~{.python}
 <<generate_binary_number>>=
@@ -109,46 +90,6 @@ def generate_binary_number(n):
     return l
 @
 ~~~~~
-
-
-Let define Repeated Squaring Modular Exponentiation (rsme) function:
-
-Input: b, k, n in N with b < n and k = $\sum_{i=0}^{t} k_i*2^{i}$
-
-Output: a = $b^{k}$ mod n.
-
-
-a=1
-
-if k=0 then write(a)
-
-c=b
-
-if $k_0$ =1 then a=b
-
-for i=1 to t do
-
-\quad c= $c^{2}$ mod n
-
-\quad if $k_i$ =1 then a=c*a mod n
-
-write(a)
-
-
-**Proof of corectness for Repeated Squaring Modular Exponentiation:**
-
-We have k = $\sum_{i=0}^{t} k_i*2^{i}$
-
-if k=0 => we return 1 because any integer to the power 0 is 1.
-
-At each step we have $b^{2^{i}}$ mod n,starting from i=1(from right in binary representation).
-Using $b^{2^{i}}$ mod n, we compute $b^{2^{i+1}}$ mod n = $(b^{2^{i}})^{2}$ mod n = $(b^{2^{i}} mod\ n)^{2}$.
-If the ${k_i}$ is 1 then we compute :  ( new a= new c* old a mod n ).This holds because
- $b^{\sum_{i=0}^{t} k_i*2^{i}}$ = $b^{ k_0*2^{0}}$ * $b^{ k_1*2^{1}}$ * ...* $b^{ k_t*2^{t}}$ and then 
- $b^{k}$ mod n = $b^{\sum_{i=0}^{t} k_i*2^{i}}$ mod n = ($b^{ k_0*2^{0}}$ mod n) * ($b^{ k_1*2^{1}}$ mod n) * ...* ($b^{ k_t*2^{t}}$ mod n) ,
-where ($b^{ k_i*2^{i}}$ mod n) is our c computed at i-th iteration(for $k_i$=1).
-
-
 
 ~~~~~{.python}
 <<rsme>>=
@@ -170,37 +111,7 @@ def rsme(b, k, n):
 
 # Euclidean algorithm
 
-Description:
-
-As long as b,which is the second element is not equal to 0,we will call
-recursively euclidean(b,a%b) .We can observe that always second
-element becomes the first element in the new recursive call.If we would not
-inverse the position of the elements,we would get stuck(in some cases).
-
-Ex.:a =1000,b=100 euclidean(1000,100)= euclidean(1000,100)= ...= euclidean(1000,100)= ....
-
-Here is the mathematical model:
-
-$$
- euclidean(a,b)= \begin{cases} euclidean(b,a\%b), if b>0 \\ a,else  \end{cases}
-$$
-
-The proof of corectness is based on the following lemma:
-
-*If a=c(mod b) (1), then (a,b)=(c,b)  (3)*
-
-
-Proof of this lemma:
-
-From (1) we have b|a-c,so there is a y such that by=a-c.If there is
-a d such that d divides a and b ,then it will also divide c=a-by.
-=>any divisor of a and b is a divisor of c and b. (2)
-Suppose (a,b)=x and (c,b)=y.Using (2) we have that x|y and y|x ,so we
-have that (a,b)=(c,b).
-
-For our problem we use this:
-
-We have a=a%b(mod b) =>using lemma (3)  we have that (a,b)=(a%b,b)
+You can find more details about the following function in my previous projects.
 
 
 ~~~~~{.python}
@@ -345,7 +256,7 @@ prime, because 1 and -1 are the only square roots modulo a prime of 1.
 
 If the algorithm gives the answer composite(that is, False in our case), then this is composite
 for sure.
-If the algorithm gives the answer PRIME, then the probability
+If the algorithm gives the answer PRIME(that is, True in our case), then the probability
 of correct answer is 1 - $\frac{1}{4^{k}}$ , where k is the number of
 repetitions.
 In my implementation I use k = 50 (you can change it in the function generate_large_prime in the second if branch) . The probability that 
@@ -363,7 +274,7 @@ So, this is much less than the probability to get the wrong answer due to an har
 The function miller_rabin_test_wrapper compute s and t for a given n,where 
  n - 1 =  $2^{s}$ * t. We call the function miller_rabin_test at most k times. 
  If the result is False, then we return False as well. Else,if we did not get any False, 
- we will return True (after k iteration), that is, n may be prime. 
+ we will return True (after k iterations), that is, n may be prime. 
  
  This is the algorithm: 
 
@@ -388,7 +299,6 @@ def miller_rabin_test_wrapper(n, k):
     while t % 2 == 0:
         t = t // 2
         s += 1
-    # print("aici",s,t)
     while k > 0:
         result = miller_rabin_test(n, s, t)
         if not result:
@@ -428,7 +338,6 @@ def miller_rabin_test(n, s, t):
 
     if sequence[0] == 1:
         return True
-    # print("sequence: ",sequence)
     for i in range(1, len(sequence)):
         if sequence[i] == 1:
             if sequence[i - 1] == n - 1:
@@ -441,7 +350,7 @@ def miller_rabin_test(n, s, t):
 
 # Key generation (public key & private key)
 
-In the following section I will present the function I use for the key generation: 
+In the following section I will present the functions I use for the key generation: 
 trivial_primality_check, generate_large_prime_wrapper, generate_large_prime and generate_key.
 
 Of course, miller_rabin_test_wrapper and miller_rabin_test presented in the previous section are involved 
@@ -479,7 +388,7 @@ The parameter order represents the number of bits of the number to be generated.
 We have that secrets.randbelow(2\*\*order - 1) generates a natural number from interval [0,$2^{order}$ - 1) $\implies$
 secrets.randbelow(2\*\*order - 1) + 2\**order + 1 generates a natural number from interval [$2^{order}$ + 1,$2^{order}$ + $2^{order}$) $\implies$
 a natural number from interval [$2^{order}$ + 1,$2^{order+1}$ -1] . 
-In  generate_large_prime we have:  number = $2^{order}$ (as in was computed in generate_large_prime_wrapper) .
+In  generate_large_prime we have:  number = $2^{order}$ (as it was computed in generate_large_prime_wrapper) .
 
 
 ~~~~~{.python}
@@ -512,7 +421,6 @@ def generate_large_prime(number):
         return generate_large_prime(number)
     if not miller_rabin_test_wrapper(random_number, 50):
         return generate_large_prime(number)
-    # print("not trivial_primality_check(random_number): ",random_number,not trivial_primality_check(random_number))
     return random_number
 @
 ~~~~~
@@ -540,9 +448,9 @@ secrets.randbelow(phi_n-2) + 2 generates a random natural number in range [2,$\v
 <<generate_key>>=
 def generate_key(order):
     p = generate_large_prime_wrapper(order)
-    print("p: ", p)
+    # print("p: ", p)
     q = generate_large_prime_wrapper(order)
-    print("q: ", q)
+    # sprint("q: ", q)
     while p == q:
         q = generate_large_prime_wrapper(order)
         print("q: ", q)
@@ -556,7 +464,6 @@ def generate_key(order):
     _, d, _ = extended_euclidean(e, phi_n)
     d = (d + phi_n) % phi_n
     # (n,e) is public key and d is private
-    print(n, e, d, p, q)
     return n, e, d
 @
 ~~~~~
@@ -568,10 +475,10 @@ Because we will discuss about encryption and decryption in the following 2 secti
 introduce 2 dictionaries: alphabet and numbers. 
 
 We use a 27-letters alphabet for plaintext and ciphertext:
-the blank(" ") with numerical equivalent 0 and letters A - Z (the
+the blank(" ") with numerical equivalent 0 and letters a - z (the
 English alphabet) with numerical equivalents 1-26 .
 
-The numbers dictionary is obtained by inverting the alphabet dictionary.
+The dictionary numbers is obtained by inverting the dictionary alphabet.
 
 ~~~~~{.python}
 <<alphabet>>=
@@ -693,9 +600,7 @@ def encrypt(plaintext, n, e, k, l):
     for i in range(0, len(plaintext) // k):
         numerical_equivalent = compute_numerical_equivalent(
             plaintext[k * i:k * (i + 1)])
-        # print("numerical_equivalent: ",numerical_equivalent)
         encrypted_number = rsme(numerical_equivalent, e, n)
-        # print("encrypted_number: ", encrypted_number)
         literal_equivalent = compute_literal_equivalent(encrypted_number, l)
         ciphertext = ciphertext + literal_equivalent
 
@@ -741,14 +646,11 @@ because the encrypt function always returns a ciphertext of length multiple of "
 def decrypt(ciphertext, n, d, k, l):
     if 27 ** k >= n or n >= 27 ** l:
         return "Please choose some appropriate values for k and l"
-    # print("ciphertext: ",ciphertext)
     plaintext = ""
     for i in range(0, len(ciphertext) // l):
         numerical_equivalent = compute_numerical_equivalent(ciphertext[l * i:l * (
                     i + 1)])
-        # print("numerical_equivalent: ",numerical_equivalent)
         decrypted_number = rsme(numerical_equivalent, d, n)
-        # print("decrypted_number: ",decrypted_number)
         literal_equivalent = compute_literal_equivalent(decrypted_number, k)
         plaintext = plaintext + literal_equivalent
 
@@ -764,7 +666,7 @@ def decrypt(ciphertext, n, d, k, l):
 
 # RSA function
 
-This function simply combine the functions defined above. 
+This function simply combines the functions defined above. 
 It requires a message as paramater. You can also add some optional parameters:
 
 1. order - p and q will be generated in the interval [$2^{order}$ + 1,$2^{order+1}$ -1],so 
@@ -794,10 +696,10 @@ Let us check whether $27^{k}$ < n < $27^{l}$ will hold , where the maximum value
 and the minimum value of l is int(2 * (order + 1) * upper_bound) + 1 (you can see the random generation of this values below, in the RSA function).
 
 We have $27^{max(k)}$ = $27^{int(2 * order * lower_bound)}$ $\le$ $27^{2 * order * lower_bound}$  = $(27^{ lower\_bound } )^{2 * order}$ < 
-$(27^{ log_{27} 2 } )^{2 * order}$ = $ 2 ^ {2 * order}$  < n , because p and q are from interval [$2^{order}$ + 1,$2^{order+1}$ -1] and n = pq
+$(27^{ log_{27} 2 } )^{2 * order}$ = $2^{2 * order}$  < n , because p and q are from interval [$2^{order}$ + 1,$2^{order+1}$ -1] and n = pq
 
 We have $27^{min(l)}$ = $27^{ int(2 * (order + 1) * upper_bound) + 1 }$ > $27^{2 * (order + 1) * upper_bound}$  = $(27^{ upper\_bound } )^{2 * (order + 1)}$ >
-$(27^{ log_{27} 2 } )^{2 * (order + 1)}$ = $ 2 ^ {2 * (order + 1)}$  > n , because p and q are from interval [$2^{order}$ + 1,$2^{order+1}$ -1] and n = pq
+$(27^{ log_{27} 2 } )^{2 * (order + 1)}$ = $2^{2 * (order + 1)}$  > n , because p and q are from interval [$2^{order}$ + 1,$2^{order+1}$ -1] and n = pq
 
 
 $\implies$  it’s safe to use the default values (auto-generated values) for k and l. 
@@ -815,7 +717,6 @@ def RSA(message, order=512, k=-1, l=-1):
         k = random.randrange(2, int(2 * order * lower_bound)+1)
         aux = int(2 * (order + 1) * upper_bound) + 1
         l = random.randrange(aux, aux*4)
-    # print(n,e,d)
     print("Message to be encrypted: ", message)
     encrypted_message = encrypt(message, n, e, k, l)
     print("encrypted_message: ", encrypted_message)
@@ -841,7 +742,6 @@ def RSA_using_file(file_name, order=512, k=-1, l=-1):
         k = random.randrange(2, int(2 * order * lower_bound)+1)
         aux = int(2 * (order + 1) * upper_bound) + 1
         l = random.randrange(aux, aux*4)
-    # print(n,e,d)
 
     f = open(file_name, "r")
     message = f.read()
@@ -852,7 +752,6 @@ def RSA_using_file(file_name, order=512, k=-1, l=-1):
 
     encrypted_message = encrypt(message, n, e, k, l)
     encrypted_file = file_name+".encrypted"
-    # print(encrypted_file)
     f = open(encrypted_file, "w")
     f.write(encrypted_message)
     f.close()
@@ -873,12 +772,8 @@ def RSA_using_file(file_name, order=512, k=-1, l=-1):
 ~~~~~{.python}
 <<main>>=
 def main():
-    message = "algebra"
-    print("Message to be encrypted: ", message)
-    encrypted_message = encrypt("algebra", 1643, 67, 2, 3)
-    print("encrypted_message: ", encrypted_message)
-    decrypted_message = decrypt(encrypted_message, 1643, 163, 2, 3)
-    print("decrypted_message: ", decrypted_message)
+    RSA("the best time to visit cancun is from december to april during the peak season")
+    # RSA_using_file("message.txt")
 @
 ~~~~~
 
@@ -888,6 +783,7 @@ We use 50 repetitions for the tests, so they should not give a wrong result.
 
 We also test other helper functions,such as extended_euclidean, euclidean and rsme functions . 
 
+Of course,we also test the encrypt and decrypt functions, testing whether the initial message is equal to the message obtained after decryption. (we run 20 tests for encrypt and decrypt functions)
 
 
 ~~~~~{.python}
@@ -910,9 +806,9 @@ def tests():
         assert a * l[1] + b * l[2] == euclidean(a, b)
 
     # testing the rsme function, which computes a^b mod n using repeated squaring modular exponentiation
-    assert (rsme(16, 10, 11) == pow(16, 10, 11)
-    assert (rsme(116, 107, 211) == pow(116, 107, 211)
-    assert (rsme(145, 129, 199) == pow(145, 129, 199)
+    assert rsme(16, 10, 11) == pow(16, 10, 11)
+    assert rsme(116, 107, 211) == pow(116, 107, 211)
+    assert rsme(145, 129, 199) == pow(145, 129, 199)
     for i in range(0, 20):
         a = random.randrange(10, 1000)
         b = random.randrange(10, 1000)
@@ -952,11 +848,21 @@ def tests():
         encrypted_message = encrypt(message, n, e, k, l)
         # print("encrypted_message: ", encrypted_message)
         decrypted_message = decrypt(encrypted_message, n, d, k, l)
-        print("message: ",message)
-        print("decrypted_message: ", decrypted_message)
+        # print("message: ",message)
+        # print("decrypted_message: ", decrypted_message)
         assert message == decrypted_message
+    print("ALL TESTS PASSED")
 @
 ~~~~~
+
+# Remarks
+
+It is very import to set the recursion limit at least 2000 (using sys.setrecursionlimit(2000) ), because otherwise we could get an error using order > 512 (i.e. 'RecursionError: maximum recursion depth exceeded in comparison').
+
+Also,you can see that I used secrets module for generating random numbers in my program . I used this module whenever I had to 
+generate a cryptographically strong random number.
+As the documentation states,  secrets should be used in preference to the default pseudo-random number generator in the random module, which is designed for modelling and simulation, not security or cryptography.
+You can find more about this library here: https://docs.python.org/3/library/secrets.html .
 
 
 
@@ -966,7 +872,6 @@ import secrets
 import sys
 import random
 
-print("sys.getrecursionlimit(): ",sys.getrecursionlimit())
 sys.setrecursionlimit(2000)
 
 
@@ -992,16 +897,15 @@ sys.setrecursionlimit(2000)
 <<RSA>>
 <<RSA_using_file>>
 
+
 <<main>>
 <<tests>>
 
-# RSA("the best time to visit cancun is from december to april during the peak season")
 
-# RSA_using_file("message.txt")
 
 tests()
 
-# main()
+main()
 
 @
 ~~~~~
